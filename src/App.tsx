@@ -1,122 +1,101 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { ProtectedRoute, AdminRoute, GuestRoute } from '@/routes/ProtectedRoute';
+import { Skeleton } from '@/components/feedback/Skeleton';
 
-function App() {
-  const [count, setCount] = useState(0)
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: 1, staleTime: 30_000 },
+  },
+});
 
+const PageLoader = () => (
+  <div className="p-6 space-y-3">
+    <Skeleton height="h-8" width="w-1/3" />
+    <Skeleton height="h-4" width="w-2/3" />
+    <div className="grid grid-cols-2 gap-3 mt-4">
+      {[...Array(4)].map((_, i) => <Skeleton key={i} height="h-24" rounded="rounded-2xl" />)}
+    </div>
+  </div>
+);
+
+const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
+const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'));
+const AttendancePage = lazy(() => import('@/features/attendance/AttendancePage'));
+const DoctorsPage = lazy(() => import('@/features/doctors/DoctorsPage'));
+const DoctorDetailPage = lazy(() => import('@/features/doctors/DoctorDetailPage'));
+const DoctorFormPage = lazy(() => import('@/features/doctors/DoctorFormPage'));
+const ChemistsPage = lazy(() => import('@/features/chemists/ChemistsPage'));
+const ChemistDetailPage = lazy(() => import('@/features/chemists/ChemistDetailPage'));
+const ChemistFormPage = lazy(() => import('@/features/chemists/ChemistFormPage'));
+const VisitsPage = lazy(() => import('@/features/visits/VisitsPage'));
+const VisitDetailPage = lazy(() => import('@/features/visits/VisitDetailPage'));
+const VisitFormPage = lazy(() => import('@/features/visits/VisitFormPage'));
+const DailyReportsPage = lazy(() => import('@/features/dailyReports/DailyReportsPage'));
+const DailyReportDetailPage = lazy(() => import('@/features/dailyReports/DailyReportDetailPage'));
+const DailyReportNewPage = lazy(() => import('@/features/dailyReports/DailyReportNewPage'));
+const UsersPage = lazy(() => import('@/features/users/UsersPage'));
+const UserDetailPage = lazy(() => import('@/features/users/UserDetailPage'));
+const UserFormPage = lazy(() => import('@/features/users/UserFormPage'));
+const TerritoriesPage = lazy(() => import('@/features/territories/TerritoriesPage'));
+const SettingsPage = lazy(() => import('@/features/auth/SettingsPage'));
+
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route element={<GuestRoute />}>
+              <Route path="/login" element={<LoginPage />} />
+            </Route>
 
-      <div className="ticks"></div>
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/attendance" element={<AttendancePage />} />
+                <Route path="/visits" element={<VisitsPage />} />
+                <Route path="/visits/new" element={<VisitFormPage />} />
+                <Route path="/visits/:id" element={<VisitDetailPage />} />
+                <Route path="/visits/:id/edit" element={<VisitFormPage />} />
+                <Route path="/doctors" element={<DoctorsPage />} />
+                <Route path="/doctors/new" element={<DoctorFormPage />} />
+                <Route path="/doctors/:id" element={<DoctorDetailPage />} />
+                <Route path="/doctors/:id/edit" element={<DoctorFormPage />} />
+                <Route path="/chemists" element={<ChemistsPage />} />
+                <Route path="/chemists/new" element={<ChemistFormPage />} />
+                <Route path="/chemists/:id" element={<ChemistDetailPage />} />
+                <Route path="/chemists/:id/edit" element={<ChemistFormPage />} />
+                <Route path="/daily-reports" element={<DailyReportsPage />} />
+                <Route path="/daily-reports/new" element={<DailyReportNewPage />} />
+                <Route path="/daily-reports/:id" element={<DailyReportDetailPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+                <Route element={<AdminRoute />}>
+                  <Route path="/users" element={<UsersPage />} />
+                  <Route path="/users/new" element={<UserFormPage />} />
+                  <Route path="/users/:id" element={<UserDetailPage />} />
+                  <Route path="/users/:id/edit" element={<UserFormPage />} />
+                  <Route path="/territories" element={<TerritoriesPage />} />
+                </Route>
+              </Route>
+            </Route>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: { borderRadius: '12px', fontSize: '14px' },
+          success: { duration: 3000 },
+          error: { duration: 4000 },
+        }}
+      />
+    </QueryClientProvider>
+  );
 }
-
-export default App
