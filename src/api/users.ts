@@ -1,5 +1,5 @@
 import { api } from './axios';
-import type { ApiResponse, PaginatedResponse, User, CreateUserPayload, UpdateUserPayload } from '@/types/api';
+import type { ApiResponse, PaginatedResponse, User, Chemist, CreateUserPayload, UpdateUserPayload } from '@/types/api';
 
 export const usersApi = {
   create: (data: CreateUserPayload) =>
@@ -22,4 +22,13 @@ export const usersApi = {
 
   resetPassword: (id: string, password: string) =>
     api.post<ApiResponse<{ message: string }>>(`/users/${id}/reset-password`, { password }),
+
+  getAssignedChemists: (salesPersonId: string) =>
+    api.get<ApiResponse<Chemist[]>>(`/users/${salesPersonId}/assigned-chemists`),
+
+  assignChemists: (salesPersonId: string, chemistIds: string[]) =>
+    api.post<ApiResponse<{ message: string }>>(`/users/${salesPersonId}/assigned-chemists`, { chemistIds }),
+
+  removeAssignedChemist: (salesPersonId: string, chemistId: string) =>
+    api.delete<ApiResponse<{ message: string }>>(`/users/${salesPersonId}/assigned-chemists/${chemistId}`),
 };

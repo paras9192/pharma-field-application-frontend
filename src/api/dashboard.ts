@@ -1,5 +1,8 @@
 import { api } from './axios';
-import type { ApiResponse, AdminDashboard, EmployeeDashboard, TerritoryStats, EmployeePerformance } from '@/types/api';
+import type {
+  ApiResponse, AdminDashboard, EmployeeDashboard, TerritoryStats, EmployeePerformance,
+  SuperAdminDashboard, PaymentsDashboard, SalesPersonDashboard, MRDashboard, AlertsResponse,
+} from '@/types/api';
 
 export const dashboardApi = {
   admin: (date?: string) =>
@@ -13,4 +16,19 @@ export const dashboardApi = {
 
   performance: (from?: string, to?: string) =>
     api.get<ApiResponse<EmployeePerformance[]>>('/dashboard/performance', { params: { from, to } }),
+
+  superAdmin: (date?: string) =>
+    api.get<ApiResponse<SuperAdminDashboard>>('/dashboard/super-admin', { params: { date } }),
+
+  payments: (from?: string, to?: string) =>
+    api.get<ApiResponse<PaymentsDashboard>>('/dashboard/payments', { params: { from, to } }),
+
+  salesPerson: (params?: { userId?: string; date?: string }) =>
+    api.get<ApiResponse<SalesPersonDashboard>>('/dashboard/sales-person', { params }),
+
+  mr: (params?: { userId?: string; date?: string }) =>
+    api.get<ApiResponse<MRDashboard>>('/dashboard/mr', { params }),
+
+  alerts: () =>
+    api.get<ApiResponse<AlertsResponse>>('/dashboard/alerts'),
 };

@@ -198,6 +198,7 @@ export interface Chemist {
   territoryId: number | null;
   territory: Pick<Territory, 'id' | 'name'> | null;
   addedBy: { id: string; name: string } | null;
+  assignedSalesPerson: { id: string; name: string } | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -391,4 +392,347 @@ export interface EmployeePerformance {
   chemistVisits: number;
   daysPresent: number;
   reportsSubmitted: number;
+}
+
+// ─── Orders ───────────────────────────────────────────────────────────────────
+
+export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'DISPATCHED' | 'DELIVERED' | 'CANCELLED';
+
+export interface OrderItem {
+  id: string;
+  productName: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+  notes: string | null;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  chemistId: string;
+  chemist: { id: string; shopName: string; ownerName: string };
+  status: OrderStatus;
+  totalAmount: number;
+  expectedDelivery: string | null;
+  deliveredAt: string | null;
+  deliveredBy: { id: string; name: string } | null;
+  notes: string | null;
+  items: OrderItem[];
+  createdBy: { id: string; name: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Bills ────────────────────────────────────────────────────────────────────
+
+export type BillStatus = 'UNPAID' | 'PARTIAL' | 'PAID';
+export type SettlementType = 'GOODS_RETURN' | 'CREDIT_NOTE' | 'DISCOUNT';
+
+export interface BillImage {
+  id: string;
+  billId: string;
+  imageUrl?: string;
+  url?: string;
+  filePath?: string;
+  createdAt: string;
+}
+
+export interface Bill {
+  id: string;
+  billNumber: string;
+  chemistId: string;
+  chemist: { id: string; shopName: string; ownerName: string };
+  orderId: string | null;
+  order: { id: string; orderNumber: string } | null;
+  totalAmount: number;
+  paidAmount: number;
+  dueAmount: number;
+  status: BillStatus;
+  dueDate: string | null;
+  notes: string | null;
+  images: BillImage[];
+  payments?: Payment[];
+  createdBy: { id: string; name: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Settlement {
+  id: string;
+  billId: string;
+  type: SettlementType;
+  amount: number;
+  notes: string | null;
+  createdBy: { id: string; name: string };
+  createdAt: string;
+}
+
+// ─── Payments ─────────────────────────────────────────────────────────────────
+
+export type PaymentMode = 'CASH' | 'CHEQUE' | 'UPI' | 'NEFT' | 'BANK_TRANSFER';
+
+export interface Payment {
+  id: string;
+  billId: string;
+  bill: { id: string; billNumber: string } | null;
+  amount: number;
+  paymentMode: PaymentMode;
+  referenceNumber: string | null;
+  notes: string | null;
+  collectedBy: { id: string; name: string };
+  createdAt: string;
+}
+
+export interface PaymentSummary {
+  totalCollected: number;
+  totalTransactions: number;
+  byMode: Array<{ mode: PaymentMode; amount: number; count: number }>;
+}
+
+// ─── Dashboard Types ────────────────────────────────────────────────────────
+export type AlertSeverity = 'HIGH' | 'MEDIUM' | 'LOW'
+
+export interface DailyTrend {
+  date: string
+  amount: number
+  count: number
+}
+
+export interface SuperAdminDashboard {
+  date: string
+  kpi: {
+    totalBills: number
+    totalBillValue: number
+    totalCollected: number
+    totalOutstanding: number
+    overdueCount: number
+    overdueAmount: number
+    billsToday: number
+    billsThisMonth: number
+    totalChemists: number
+    totalDoctors: number
+    totalEmployees: number
+    presentToday: number
+    attendanceRate: number
+    visitsToday: number
+    pendingFollowUps: number
+    collectionRate: number
+  }
+  trends: {
+    bills: DailyTrend[]
+    collections: DailyTrend[]
+  }
+  leaderboard: {
+    salespersons: Array<{
+      rank: number
+      user: { id: string; name: string; employeeCode: string | null }
+      collected: number
+      transactions: number
+    }>
+    mrs: Array<{
+      rank: number
+      user: { id: string; name: string; employeeCode: string | null; role: { name: string } }
+      visitsThisMonth: number
+    }>
+  }
+  alerts: {
+    overdueCount: number
+    overdueAmount: number
+    pendingFollowUps: number
+    employeesAbsent: number
+  }
+  recentActivity: {
+    payments: Array<{
+      type: 'PAYMENT'
+      id: string
+      description: string
+      mode: string
+      amount: number
+      at: string
+    }>
+    bills: Array<{
+      type: 'BILL'
+      id: string
+      description: string
+      amount: number
+      status: string
+      at: string
+    }>
+  }
+}
+
+export interface PaymentsDashboard {
+  kpi: {
+    totalBills: number
+    totalBillValue: number
+    totalCollected: number
+    totalOutstanding: number
+    unpaidCount: number
+    partialCount: number
+    paidCount: number
+    totalTransactions: number
+    collectionRate: number
+  }
+  aging: {
+    dueToday: { count: number; amount: number }
+    due1to7Days: { count: number; amount: number }
+    due8to15Days: { count: number; amount: number }
+    due16to30Days: { count: number; amount: number }
+    overdue30plus: { count: number; amount: number }
+  }
+  paymentModes: Array<{ mode: string; amount: number; count: number }>
+  salespersonRanking?: Array<{
+    rank: number
+    user: { id: string; name: string; employeeCode: string | null }
+    totalCollected: number
+    transactions: number
+  }>
+  upcomingCollections: Array<{
+    id: string
+    billNumber: string
+    dueAmount: number
+    dueDate: string
+    daysUntilDue: number
+    status: string
+    chemist: { id: string; shopName: string; ownerName: string; phone: string }
+    createdBy: { id: string; name: string; employeeCode: string | null }
+  }>
+  highRiskAccounts: Array<{
+    id: string
+    billNumber: string
+    dueAmount: number
+    dueDate: string
+    daysOverdue: number
+    status: string
+    chemist: { id: string; shopName: string; ownerName: string; phone: string }
+    createdBy: { id: string; name: string; employeeCode: string | null }
+  }>
+  trends: {
+    collections: DailyTrend[]
+  }
+}
+
+export interface SalesPersonDashboard {
+  date: string
+  attendance: {
+    id: string
+    userId: string
+    date: string
+    checkInTime: string | null
+    checkOutTime: string | null
+    status: AttendanceStatus
+    workingHours: number | null
+  } | null
+  kpi: {
+    totalAssignedChemists: number
+    todayCollected: number
+    todayTransactions: number
+    todayVisits: number
+    pendingBills: number
+    overdueCount: number
+    pendingFollowUps: number
+  }
+  monthlyPerformance: {
+    billsCreated: number
+    billValue: number
+    collected: number
+    transactions: number
+  }
+  collectionTasks: Array<{
+    id: string
+    billNumber: string
+    dueAmount: number
+    dueDate: string
+    daysUntilDue: number
+    priority: 'HIGH' | 'MEDIUM' | 'LOW'
+    status: string
+    chemist: { id: string; shopName: string; ownerName: string; phone: string }
+  }>
+  overdueBills: Array<{
+    id: string
+    billNumber: string
+    dueAmount: number
+    dueDate: string
+    daysOverdue: number
+    status: string
+    chemist: { id: string; shopName: string; ownerName: string; phone: string }
+  }>
+  todaySchedule: Array<{
+    id: string
+    visitType: VisitType
+    visitTime: string
+    status: VisitStatus
+    purpose: string | null
+    doctor: { id: string; name: string } | null
+    chemist: { id: string; shopName: string } | null
+  }>
+  assignedChemists: Array<{ id: string; shopName: string; ownerName: string; phone: string }>
+}
+
+export interface MRDashboard {
+  date: string
+  attendance: {
+    id: string
+    userId: string
+    date: string
+    checkInTime: string | null
+    checkOutTime: string | null
+    status: AttendanceStatus
+    workingHours: number | null
+  } | null
+  kpi: {
+    todayVisits: number
+    completedVisitsToday: number
+    pendingFollowUps: number
+    totalVisitsThisMonth: number
+    avgVisitsPerDay: number
+    reportStatus: ReportStatus
+  }
+  monthlyBreakdown: {
+    totalVisits: number
+    doctorVisits: number
+    chemistVisits: number
+    completionRate: number
+  }
+  todaySchedule: Array<{
+    id: string
+    visitType: VisitType
+    visitTime: string
+    status: VisitStatus
+    purpose: string | null
+    notes: string | null
+    doctor: { id: string; name: string; specialization: string | null; clinicName: string | null } | null
+    chemist: { id: string; shopName: string } | null
+    products: Array<{ id: number; productName: string; details: string | null; quantity: string | null }>
+  }>
+  upcomingFollowUps: Array<{
+    id: string
+    visitType: VisitType
+    followUpDate: string
+    followUpNotes: string | null
+    doctor: { id: string; name: string; specialization: string | null; clinicName: string | null } | null
+    chemist: { id: string; shopName: string } | null
+  }>
+  recentActivity: Array<{
+    id: string
+    visitType: VisitType
+    visitDate: string
+    status: VisitStatus
+    doctor: { id: string; name: string } | null
+    chemist: { id: string; shopName: string } | null
+  }>
+}
+
+export interface DashboardAlert {
+  type: string
+  severity: AlertSeverity
+  message: string
+  count?: number
+}
+
+export interface AlertsResponse {
+  count: number
+  generatedAt: string
+  alerts: DashboardAlert[]
 }

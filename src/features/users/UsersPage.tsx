@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Plus, Search, UserCheck, UserX, Shield } from 'lucide-react';
 import { usersApi } from '@/api/users';
+import { useAuthStore } from '@/store/authStore';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -20,6 +21,8 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [page, setPage] = useState(1);
   const qc = useQueryClient();
+  const currentUserRole = useAuthStore(s => s.user?.role);
+  const canToggleActive = currentUserRole === 'SUPER_ADMIN';
 
   const query = useQuery({
     queryKey: ['users', { search, roleFilter, page }],
@@ -87,6 +90,7 @@ export default function UsersPage() {
                 user={user}
                 onToggle={() => toggleMutation.mutate(user.id)}
                 toggling={toggleMutation.isPending}
+                canToggle={canToggleActive}
               />
             ))}
           </div>
@@ -103,7 +107,7 @@ export default function UsersPage() {
   );
 }
 
-function UserCard({ user, onToggle, toggling }: { user: User; onToggle: () => void; toggling: boolean }) {
+function UserCard({ user, onToggle, toggling, canToggle }: { user: User; onToggle: () => void; toggling: boolean; canToggle: boolean }) {
   const roleColors: Record<Role, string> = {
     SUPER_ADMIN: 'purple',
     ADMIN: 'info',
@@ -136,15 +140,17 @@ function UserCard({ user, onToggle, toggling }: { user: User; onToggle: () => vo
           <Link to={`/users/${user.id}/edit`}>
             <Button variant="ghost" size="sm">Edit</Button>
           </Link>
-          <Button
-            variant="ghost"
-            size="sm"
-            loading={toggling}
-            onClick={onToggle}
-            className={user.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}
-          >
-            {user.isActive ? <UserX size={14} /> : <UserCheck size={14} />}
-          </Button>
+          {canToggle && (
+            <Button
+              variant="ghost"
+              size="sm"
+              loading={toggling}
+              onClick={onToggle}
+              className={user.isActive ? 'text-red-500 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}
+            >
+              {user.isActive ? <UserX size={14} /> : <UserCheck size={14} />}
+            </Button>
+          )}
         </div>
       </div>
     </Card>

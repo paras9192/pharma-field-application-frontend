@@ -9,6 +9,9 @@ import { ListSkeleton } from '@/components/feedback/Skeleton';
 import { ErrorMessage } from '@/components/feedback/ErrorMessage';
 import dayjs from 'dayjs';
 import type { AdminDashboard, EmployeeDashboard } from '@/types/api';
+import SuperAdminDashboardPage from './SuperAdminDashboardPage';
+import SalesPersonDashboardPage from './SalesPersonDashboardPage';
+import MRDashboardPage from './MRDashboardPage';
 
 export default function DashboardPage() {
   const { user, isAdmin } = useAuthStore(useShallow(s => ({
@@ -16,10 +19,12 @@ export default function DashboardPage() {
     isAdmin: s.isAdmin(),
   })));
 
+  const role = user?.role;
+
   const adminQuery = useQuery({
     queryKey: ['dashboard', 'admin'],
     queryFn: () => dashboardApi.admin(),
-    enabled: isAdmin,
+    enabled: isAdmin && role !== 'SUPER_ADMIN' && role !== 'ADMIN',
     select: r => r.data.data,
   });
 
@@ -30,6 +35,44 @@ export default function DashboardPage() {
     select: r => r.data.data,
   });
 
+  const greeting = (
+    <div>
+      <h2 className="text-xl font-bold text-slate-800">
+        Good {getGreeting()}, {user?.name?.split(' ')[0]} 👋
+      </h2>
+      <p className="text-sm text-slate-400">{dayjs().format('dddd, MMMM D, YYYY')}</p>
+    </div>
+  );
+
+  // Route by role to the appropriate dashboard
+  if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+    return (
+      <div className="p-4 space-y-5 max-w-2xl mx-auto lg:max-w-4xl">
+        {greeting}
+        <SuperAdminDashboardPage />
+      </div>
+    );
+  }
+
+  if (role === 'SALES_PERSON') {
+    return (
+      <div className="p-4 space-y-5 max-w-2xl mx-auto lg:max-w-4xl">
+        {greeting}
+        <SalesPersonDashboardPage />
+      </div>
+    );
+  }
+
+  if (role === 'MR') {
+    return (
+      <div className="p-4 space-y-5 max-w-2xl mx-auto lg:max-w-4xl">
+        {greeting}
+        <MRDashboardPage />
+      </div>
+    );
+  }
+
+  // Fallback: legacy admin/employee dashboards
   const isLoading = isAdmin ? adminQuery.isLoading : meQuery.isLoading;
   const isError = isAdmin ? adminQuery.isError : meQuery.isError;
 
@@ -38,13 +81,7 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 space-y-5 max-w-2xl mx-auto lg:max-w-4xl">
-      {/* Greeting */}
-      <div>
-        <h2 className="text-xl font-bold text-slate-800">
-          Good {getGreeting()}, {user?.name?.split(' ')[0]} 👋
-        </h2>
-        <p className="text-sm text-slate-400">{dayjs().format('dddd, MMMM D, YYYY')}</p>
-      </div>
+      {greeting}
 
       {isAdmin ? (
         <AdminDashboardView data={adminQuery.data as AdminDashboard} />

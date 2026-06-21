@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ClipboardList, Users, Stethoscope, Pill, MapPin, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Users, ShoppingCart, Receipt, CalendarCheck } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 export function BottomNav() {
@@ -9,16 +9,16 @@ export function BottomNav() {
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/users', icon: Users, label: 'Team' },
     { to: '/visits', icon: CalendarCheck, label: 'Visits' },
-    { to: '/doctors', icon: Stethoscope, label: 'Doctors' },
-    { to: '/territories', icon: MapPin, label: 'Territories' },
+    // { to: '/orders', icon: ShoppingCart, label: 'Orders' },
+    { to: '/bills', icon: Receipt, label: 'Bills' },
   ];
 
   const fieldLinks = [
     { to: '/', icon: LayoutDashboard, label: 'Home' },
     { to: '/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/visits', icon: ClipboardList, label: 'Visits' },
-    { to: '/doctors', icon: Stethoscope, label: 'Doctors' },
-    { to: '/chemists', icon: Pill, label: 'Chemists' },
+    // { to: '/orders', icon: ShoppingCart, label: 'Orders' },
+    { to: '/bills', icon: Receipt, label: 'Bills' },
   ];
 
   const links = isAdmin ? adminLinks : fieldLinks;

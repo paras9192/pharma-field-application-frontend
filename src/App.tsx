@@ -23,6 +23,7 @@ const PageLoader = () => (
 );
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
+const SetPasswordPage = lazy(() => import('@/features/auth/SetPasswordPage'));
 const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'));
 const AttendancePage = lazy(() => import('@/features/attendance/AttendancePage'));
 const DoctorsPage = lazy(() => import('@/features/doctors/DoctorsPage'));
@@ -42,6 +43,14 @@ const UserDetailPage = lazy(() => import('@/features/users/UserDetailPage'));
 const UserFormPage = lazy(() => import('@/features/users/UserFormPage'));
 const TerritoriesPage = lazy(() => import('@/features/territories/TerritoriesPage'));
 const SettingsPage = lazy(() => import('@/features/auth/SettingsPage'));
+// const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'));
+// const OrderDetailPage = lazy(() => import('@/features/orders/OrderDetailPage'));
+// const OrderFormPage = lazy(() => import('@/features/orders/OrderFormPage'));
+const BillsPage = lazy(() => import('@/features/bills/BillsPage'));
+const BillDetailPage = lazy(() => import('@/features/bills/BillDetailPage'));
+const BillFormPage = lazy(() => import('@/features/bills/BillFormPage'));
+const PaymentsPage = lazy(() => import('@/features/payments/PaymentsPage'));
+const PaymentsDashboardPage = lazy(() => import('@/features/dashboard/PaymentsDashboardPage'));
 
 export default function App() {
   return (
@@ -49,6 +58,8 @@ export default function App() {
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
+            <Route path="/set-password" element={<SetPasswordPage />} />
+
             <Route element={<GuestRoute />}>
               <Route path="/login" element={<LoginPage />} />
             </Route>
@@ -73,6 +84,14 @@ export default function App() {
                 <Route path="/daily-reports/new" element={<DailyReportNewPage />} />
                 <Route path="/daily-reports/:id" element={<DailyReportDetailPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                {/* <Route path="/orders" element={<OrdersPage />} /> */}
+                {/* <Route path="/orders/new" element={<OrderFormPage />} /> */}
+                {/* <Route path="/orders/:id" element={<OrderDetailPage />} /> */}
+                <Route path="/bills" element={<BillsPage />} />
+                <Route path="/bills/new" element={<BillFormPage />} />
+                <Route path="/bills/:id" element={<BillDetailPage />} />
+                <Route path="/payments" element={<PaymentsPage />} />
+                <Route path="/dashboard/payments" element={<PaymentsDashboardPage />} />
 
                 <Route element={<AdminRoute />}>
                   <Route path="/users" element={<UsersPage />} />

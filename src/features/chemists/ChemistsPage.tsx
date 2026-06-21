@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Plus, Search, ShoppingBag, Phone, MapPin } from 'lucide-react';
+import { Plus, Search, ShoppingBag, Phone, MapPin, User } from 'lucide-react';
 import { chemistsApi } from '@/api/chemists';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -85,7 +85,7 @@ function ChemistCard({ chemist }: { chemist: Chemist }) {
               {!chemist.isActive && <Badge variant="danger">Inactive</Badge>}
             </div>
             <div className="text-sm text-slate-500">{chemist.ownerName}</div>
-            <div className="flex items-center gap-3 mt-1">
+            <div className="flex items-center gap-3 mt-1 flex-wrap">
               <span className="text-xs text-slate-400 flex items-center gap-1">
                 <Phone size={11} /> {chemist.phone}
               </span>
@@ -95,6 +95,12 @@ function ChemistCard({ chemist }: { chemist: Chemist }) {
                 </span>
               )}
             </div>
+            {chemist.assignedSalesPerson && (
+              <div className="flex items-center gap-1 mt-1.5">
+                <User size={11} className="text-blue-400" />
+                <span className="text-xs text-blue-500 font-medium">{chemist.assignedSalesPerson.name}</span>
+              </div>
+            )}
           </div>
         </div>
       </Card>

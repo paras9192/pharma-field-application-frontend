@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { KeyRound } from 'lucide-react';
 import { usersApi } from '@/api/users';
+import { useAuthStore } from '@/store/authStore';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { Button } from '@/components/common/Button';
@@ -37,6 +39,9 @@ export default function UserFormPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const isEdit = !!id;
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const currentUserRole = useAuthStore(s => s.user?.role);
 
   const { data: user } = useQuery({
     queryKey: ['user', id],
@@ -103,11 +108,38 @@ export default function UserFormPage() {
     },
   });
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: () => usersApi.resetPassword(id!, newPassword),
+    onSuccess: () => {
+      toast.success('Password reset successfully');
+      setNewPassword('');
+      setPasswordError('');
+    },
+    onError: (err: AxiosError<{ error: { message: string } }>) => {
+      const msg = err.response?.data?.error?.message || 'Failed to reset password';
+      if (err.response?.status === 403) toast.error(msg);
+      else setPasswordError(msg);
+    },
+  });
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 8 || newPassword.length > 64) {
+      setPasswordError('Password must be 8–64 characters');
+      return;
+    }
+    setPasswordError('');
+    resetPasswordMutation.mutate();
+  };
+
   if (isEdit) {
     const { register, handleSubmit, formState: { errors } } = editForm;
+    const canResetPassword = currentUserRole === 'SUPER_ADMIN' ||
+      (currentUserRole === 'ADMIN' && user?.role?.name !== 'SUPER_ADMIN');
+
     return (
-      <div className="p-4 max-w-xl mx-auto">
-        <h2 className="text-xl font-bold text-slate-800 mb-4">Edit User</h2>
+      <div className="p-4 max-w-xl mx-auto space-y-4">
+        <h2 className="text-xl font-bold text-slate-800">Edit User</h2>
         <Card>
           <form onSubmit={handleSubmit(data => updateMutation.mutate(data))} className="space-y-4">
             <Input label="Full Name" required error={errors.name?.message} {...register('name')} />
@@ -120,6 +152,29 @@ export default function UserFormPage() {
             </div>
           </form>
         </Card>
+
+        {canResetPassword && (
+          <Card>
+            <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+              <KeyRound size={15} /> Reset Password
+            </h3>
+            <form onSubmit={handleResetPassword} className="space-y-3">
+              <Input
+                label="New Password"
+                type="password"
+                required
+                placeholder="Min 8 characters"
+                hint="8–64 characters"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                error={passwordError}
+              />
+              <Button type="submit" variant="outline" fullWidth loading={resetPasswordMutation.isPending}>
+                Reset Password
+              </Button>
+            </form>
+          </Card>
+        )}
       </div>
     );
   }

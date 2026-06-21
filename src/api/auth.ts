@@ -12,4 +12,7 @@ export const authApi = {
     api.post<ApiResponse<{ message: string }>>('/auth/logout', { refreshToken }),
 
   me: () => api.get<ApiResponse<AuthUser>>('/auth/me'),
+
+  setPassword: (token: string, password: string) =>
+    api.post<ApiResponse<{ message: string }>>('/auth/set-password', { token, password }),
 };
