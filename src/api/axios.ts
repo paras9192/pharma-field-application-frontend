@@ -1,7 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-const BASE_URL = 'http://localhost:3000/api/v1';
-export const BACKEND_ORIGIN = BASE_URL.replace('/api/v1', '');
+const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000') + '/api/v1';
+export const BACKEND_ORIGIN = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 export const api = axios.create({
   baseURL: BASE_URL,
