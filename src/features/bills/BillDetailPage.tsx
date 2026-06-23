@@ -19,7 +19,8 @@ import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 import { type AxiosError } from 'axios';
 
-const BACKEND_URL = 'http://localhost:3000';
+import { BACKEND_ORIGIN } from '@/api/axios';
+const BACKEND_URL = BACKEND_ORIGIN;
 
 const billStatusVariant: Record<BillStatus, string> = {
   UNPAID: 'danger',
