@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chemistsApi } from '@/api/chemists';
 import { territoriesApi } from '@/api/territories';
+import { useLocation } from '@/hooks/useLocation';
+import { LocationBanner } from '@/components/common/LocationBanner';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { Button } from '@/components/common/Button';
@@ -31,6 +33,7 @@ export default function ChemistFormPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const isEdit = !!id;
+  const location = useLocation(!isEdit);
 
   const { data: chemist } = useQuery({
     queryKey: ['chemist', id],
@@ -74,6 +77,9 @@ export default function ChemistFormPage() {
       gstNumber: data.gstNumber || undefined,
       address: data.address || undefined,
       territoryId: data.territoryId ? Number(data.territoryId) : undefined,
+      latitude: location.lat ?? undefined,
+      longitude: location.lng ?? undefined,
+      locationCapturedAt: location.capturedAt ?? undefined,
     }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['chemists'] });
@@ -114,6 +120,7 @@ export default function ChemistFormPage() {
   return (
     <div className="p-4 max-w-xl mx-auto">
       <h2 className="text-xl font-bold text-slate-800 mb-4">{isEdit ? 'Edit Chemist' : 'Add Chemist'}</h2>
+      {!isEdit && <div className="mb-4"><LocationBanner location={location} /></div>}
       <Card>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input label="Shop Name" required placeholder="Raj Medical Store" error={errors.shopName?.message} {...register('shopName')} />

@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Receipt, IndianRupee, Package, Upload, RotateCcw, ImageIcon, FileText, Trash2 } from 'lucide-react';
 import { billsApi } from '@/api/bills';
 import { paymentsApi } from '@/api/payments';
+import { useAuthStore } from '@/store/authStore';
+import { canUploadBillImage, canDeleteBillImage } from '@/utils/permissions';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -51,6 +53,9 @@ export default function BillDetailPage() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const currentRole = useAuthStore(s => s.user?.role);
+  const canUpload = currentRole ? canUploadBillImage(currentRole) : false;
+  const canDelete = currentRole ? canDeleteBillImage(currentRole) : false;
 
   // Payment modal state
   const [showPayModal, setShowPayModal] = useState(false);
@@ -233,24 +238,26 @@ export default function BillDetailPage() {
           <h3 className="font-semibold text-slate-700 flex items-center gap-2">
             <ImageIcon size={15} /> Bill Scans {images.length > 0 && `(${images.length})`}
           </h3>
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              multiple
-              className="hidden"
-              onChange={handleFileChange}
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              loading={uploadMutation.isPending}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload size={13} /> Upload
-            </Button>
-          </div>
+          {canUpload && (
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                multiple
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <Button
+                size="sm"
+                variant="ghost"
+                loading={uploadMutation.isPending}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload size={13} /> Upload
+              </Button>
+            </div>
+          )}
         </div>
 
         {images.length > 0 ? (
@@ -283,17 +290,19 @@ export default function BillDetailPage() {
                       </a>
                     )}
                   </div>
-                  <button
-                    onClick={() => { if (confirm('Delete this image?')) deleteImageMutation.mutate(img.id); }}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={() => { if (confirm('Delete this image?')) deleteImageMutation.mutate(img.id); }}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               );
             })}
           </div>
-        ) : (
+        ) : canUpload ? (
           <button
             onClick={() => fileInputRef.current?.click()}
             className="w-full border-2 border-dashed border-slate-200 rounded-xl py-8 text-slate-400 hover:border-blue-300 hover:text-blue-500 transition-colors flex flex-col items-center gap-2"
@@ -301,6 +310,8 @@ export default function BillDetailPage() {
             <Upload size={24} />
             <span className="text-sm">Upload bill images or PDFs (up to 10, max 10MB each)</span>
           </button>
+        ) : (
+          <div className="text-sm text-slate-400 text-center py-4">No images attached</div>
         )}
       </Card>
 

@@ -28,4 +28,15 @@ export const visitsApi = {
 
   markFollowUpDone: (id: string) =>
     api.patch<ApiResponse<Visit>>(`/visits/${id}/follow-up-done`),
+
+  uploadImages: (id: string, files: File[]) => {
+    const form = new FormData();
+    files.forEach(f => form.append('files', f));
+    return api.post<ApiResponse<Visit>>(`/visits/${id}/images`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  deleteImage: (id: string, imageId: number) =>
+    api.delete<ApiResponse<{ message: string }>>(`/visits/${id}/images/${imageId}`),
 };

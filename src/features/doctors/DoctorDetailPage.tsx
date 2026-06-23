@@ -1,8 +1,11 @@
+import { useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Phone, Mail, MapPin, Building2, Trash2, Plus } from 'lucide-react';
+import { Edit2, Phone, Mail, MapPin, Building2, Trash2, Plus, ImageIcon } from 'lucide-react';
 import { doctorsApi } from '@/api/doctors';
 import { useAuthStore } from '@/store/authStore';
+import { canEditOwnedRecord } from '@/utils/permissions';
+import { ImageGallery } from '@/components/common/CameraInput';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -10,12 +13,18 @@ import { ListSkeleton } from '@/components/feedback/Skeleton';
 import { ErrorMessage } from '@/components/feedback/ErrorMessage';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
+import type { AxiosError } from 'axios';
+
+const ALLOWED = /\.(jpg|jpeg|png|webp)$/i;
 
 export default function DoctorDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const currentUser = useAuthStore(s => s.user);
   const isAdmin = useAuthStore(s => s.isAdmin());
   const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [deletingImageId, setDeletingImageId] = useState<number | null>(null);
 
   const query = useQuery({
     queryKey: ['doctor', id],
@@ -34,11 +43,50 @@ export default function DoctorDetailPage() {
     onError: () => toast.error('Failed to deactivate'),
   });
 
+  const uploadMutation = useMutation({
+    mutationFn: (files: File[]) => doctorsApi.uploadImages(id!, files),
+    onSuccess: () => {
+      toast.success('Image uploaded');
+      qc.invalidateQueries({ queryKey: ['doctor', id] });
+    },
+    onError: (err: AxiosError<{ error: { message: string } }>) => {
+      toast.error(err.response?.data?.error?.message || 'Failed to upload');
+    },
+  });
+
+  const deleteImageMutation = useMutation({
+    mutationFn: (imageId: number) => doctorsApi.deleteImage(id!, imageId),
+    onSuccess: () => {
+      toast.success('Image deleted');
+      qc.invalidateQueries({ queryKey: ['doctor', id] });
+      setDeletingImageId(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete image');
+      setDeletingImageId(null);
+    },
+  });
+
   if (query.isLoading) return <ListSkeleton />;
   if (query.isError) return <ErrorMessage onRetry={query.refetch} />;
 
   const doc = query.data;
   if (!doc) return null;
+
+  const canEdit = currentUser
+    ? canEditOwnedRecord(currentUser.id, doc.addedBy?.id, currentUser.role)
+    : false;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    const valid = files.filter(f => ALLOWED.test(f.name));
+    if (valid.length !== files.length) {
+      toast.error('Only JPG, PNG, or WEBP images allowed');
+      return;
+    }
+    if (valid.length) uploadMutation.mutate(valid);
+    e.target.value = '';
+  };
 
   return (
     <div className="p-4 space-y-4 max-w-2xl mx-auto">
@@ -61,13 +109,15 @@ export default function DoctorDetailPage() {
         </div>
 
         <div className="flex gap-2 mt-4">
-          <Link to={`/doctors/${id}/edit`} className="flex-1">
-            <Button variant="outline" size="sm" fullWidth>
-              <Edit2 size={14} /> Edit
-            </Button>
-          </Link>
-          <Link to={`/visits/new?doctorId=${id}&doctorName=${encodeURIComponent(doc.name)}`} className="flex-1">
-            <Button size="sm" fullWidth>
+          {canEdit && (
+            <Link to={`/doctors/${id}/edit`} className="flex-1">
+              <Button variant="outline" size="sm" fullWidth>
+                <Edit2 size={14} /> Edit
+              </Button>
+            </Link>
+          )}
+          <Link to={`/visits/new?doctorId=${id}&doctorName=${encodeURIComponent(doc.name)}`} className={canEdit ? '' : 'flex-1'}>
+            <Button size="sm" fullWidth={!canEdit}>
               <Plus size={14} /> Log Visit
             </Button>
           </Link>
@@ -100,6 +150,36 @@ export default function DoctorDetailPage() {
         </div>
       </Card>
 
+      {/* Images */}
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+            <ImageIcon size={15} /> Photos {(doc.images?.length ?? 0) > 0 && `(${doc.images.length})`}
+          </h3>
+          <>
+            <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              loading={uploadMutation.isPending}
+              onClick={() => fileRef.current?.click()}
+            >
+              Add Photo
+            </Button>
+          </>
+        </div>
+        {!doc.images?.length ? (
+          <div className="text-sm text-slate-400 text-center py-4">No photos yet</div>
+        ) : (
+          <ImageGallery
+            images={doc.images ?? []}
+            onDelete={imageId => { setDeletingImageId(imageId); deleteImageMutation.mutate(imageId); }}
+            deletingId={deletingImageId}
+          />
+        )}
+      </Card>
+
       {/* Added by */}
       {doc.addedBy && (
         <Card>
@@ -112,7 +192,7 @@ export default function DoctorDetailPage() {
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function InfoRow({ icon, label, value }: { icon?: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3">
       <div className="text-slate-400 mt-0.5 flex-shrink-0">{icon}</div>

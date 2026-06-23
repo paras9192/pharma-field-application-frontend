@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Phone, Mail, MapPin, Hash, Trash2, Plus, UserPlus, Search } from 'lucide-react';
+import { Edit2, Phone, Mail, MapPin, Hash, Trash2, Plus, UserPlus, Search, ImageIcon } from 'lucide-react';
 import { chemistsApi } from '@/api/chemists';
 import { usersApi } from '@/api/users';
 import { useAuthStore } from '@/store/authStore';
+import { canEditOwnedRecord } from '@/utils/permissions';
+import { ImageGallery } from '@/components/common/CameraInput';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -16,12 +18,17 @@ import toast from 'react-hot-toast';
 import { type AxiosError } from 'axios';
 import dayjs from 'dayjs';
 
+const ALLOWED = /\.(jpg|jpeg|png|webp)$/i;
+
 export default function ChemistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const currentUser = useAuthStore(s => s.user);
   const isAdmin = useAuthStore(s => s.isAdmin());
   const qc = useQueryClient();
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [deletingImageId, setDeletingImageId] = useState<number | null>(null);
 
   const query = useQuery({
     queryKey: ['chemist', id],
@@ -40,11 +47,50 @@ export default function ChemistDetailPage() {
     onError: () => toast.error('Failed to deactivate'),
   });
 
+  const uploadMutation = useMutation({
+    mutationFn: (files: File[]) => chemistsApi.uploadImages(id!, files),
+    onSuccess: () => {
+      toast.success('Image uploaded');
+      qc.invalidateQueries({ queryKey: ['chemist', id] });
+    },
+    onError: (err: AxiosError<{ error: { message: string } }>) => {
+      toast.error(err.response?.data?.error?.message || 'Failed to upload');
+    },
+  });
+
+  const deleteImageMutation = useMutation({
+    mutationFn: (imageId: number) => chemistsApi.deleteImage(id!, imageId),
+    onSuccess: () => {
+      toast.success('Image deleted');
+      qc.invalidateQueries({ queryKey: ['chemist', id] });
+      setDeletingImageId(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete image');
+      setDeletingImageId(null);
+    },
+  });
+
   if (query.isLoading) return <ListSkeleton />;
   if (query.isError) return <ErrorMessage onRetry={query.refetch} />;
 
   const c = query.data;
   if (!c) return null;
+
+  const canEdit = currentUser
+    ? canEditOwnedRecord(currentUser.id, c.addedBy?.id, currentUser.role)
+    : false;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    const valid = files.filter(f => ALLOWED.test(f.name));
+    if (valid.length !== files.length) {
+      toast.error('Only JPG, PNG, or WEBP images allowed');
+      return;
+    }
+    if (valid.length) uploadMutation.mutate(valid);
+    e.target.value = '';
+  };
 
   return (
     <div className="p-4 space-y-4 max-w-2xl mx-auto">
@@ -64,11 +110,13 @@ export default function ChemistDetailPage() {
         </div>
 
         <div className="flex gap-2 mt-4">
-          <Link to={`/chemists/${id}/edit`} className="flex-1">
-            <Button variant="outline" size="sm" fullWidth><Edit2 size={14} /> Edit</Button>
-          </Link>
-          <Link to={`/visits/new?chemistId=${id}&chemistName=${encodeURIComponent(c.shopName)}`} className="flex-1">
-            <Button size="sm" fullWidth><Plus size={14} /> Log Visit</Button>
+          {canEdit && (
+            <Link to={`/chemists/${id}/edit`} className="flex-1">
+              <Button variant="outline" size="sm" fullWidth><Edit2 size={14} /> Edit</Button>
+            </Link>
+          )}
+          <Link to={`/visits/new?chemistId=${id}&chemistName=${encodeURIComponent(c.shopName)}`} className={canEdit ? '' : 'flex-1'}>
+            <Button size="sm" fullWidth={!canEdit}><Plus size={14} /> Log Visit</Button>
           </Link>
           {isAdmin && (
             <>
@@ -94,6 +142,36 @@ export default function ChemistDetailPage() {
           {c.address && <InfoRow icon={<MapPin size={15} />} label="Address" value={c.address} />}
           {c.territory && <InfoRow icon={<MapPin size={15} />} label="Territory" value={c.territory.name} />}
         </div>
+      </Card>
+
+      {/* Images */}
+      <Card>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+            <ImageIcon size={15} /> Photos {(c.images?.length ?? 0) > 0 && `(${c.images.length})`}
+          </h3>
+          <>
+            <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              loading={uploadMutation.isPending}
+              onClick={() => fileRef.current?.click()}
+            >
+              Add Photo
+            </Button>
+          </>
+        </div>
+        {!c.images?.length ? (
+          <div className="text-sm text-slate-400 text-center py-4">No photos yet</div>
+        ) : (
+          <ImageGallery
+            images={c.images ?? []}
+            onDelete={imageId => { setDeletingImageId(imageId); deleteImageMutation.mutate(imageId); }}
+            deletingId={deletingImageId}
+          />
+        )}
       </Card>
 
       {c.addedBy && (

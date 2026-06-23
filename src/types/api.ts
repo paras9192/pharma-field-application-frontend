@@ -154,6 +154,14 @@ export interface TerritoryHierarchy {
 
 // ─── Doctor ───────────────────────────────────────────────────────────────────
 
+export interface EntityImage {
+  id: number;
+  url: string;
+  filename: string;
+  createdAt: string;
+  uploadedBy: { id: string; name: string };
+}
+
 export interface Doctor {
   id: string;
   name: string;
@@ -168,6 +176,10 @@ export interface Doctor {
   territory: Pick<Territory, 'id' | 'name'> | null;
   addedBy: { id: string; name: string } | null;
   isActive: boolean;
+  latitude: string | null;
+  longitude: string | null;
+  locationCapturedAt: string | null;
+  images: EntityImage[];
   createdAt: string;
   updatedAt: string;
 }
@@ -182,6 +194,9 @@ export interface CreateDoctorPayload {
   email?: string;
   address?: string;
   territoryId?: number;
+  latitude?: number;
+  longitude?: number;
+  locationCapturedAt?: string;
 }
 
 // ─── Chemist ──────────────────────────────────────────────────────────────────
@@ -200,8 +215,23 @@ export interface Chemist {
   addedBy: { id: string; name: string } | null;
   assignedSalesPerson: { id: string; name: string } | null;
   isActive: boolean;
+  latitude: string | null;
+  longitude: string | null;
+  locationCapturedAt: string | null;
+  images: EntityImage[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SalesPersonChemist {
+  id: string;
+  userId: string;
+  chemistId: string;
+  assignedAt: string;
+  chemist: Pick<Chemist, 'id' | 'shopName' | 'ownerName' | 'phone' | 'address' | 'gstNumber' | 'isActive'> & {
+    territory: Pick<Territory, 'id' | 'name'> | null;
+  };
+  assignedBy: { id: string; name: string };
 }
 
 export interface CreateChemistPayload {
@@ -213,6 +243,9 @@ export interface CreateChemistPayload {
   gstNumber?: string;
   address?: string;
   territoryId?: number;
+  latitude?: number;
+  longitude?: number;
+  locationCapturedAt?: string;
 }
 
 // ─── Attendance ───────────────────────────────────────────────────────────────
@@ -273,6 +306,7 @@ export interface Visit {
   lat: string | null;
   lng: string | null;
   locationAddress: string | null;
+  locationCapturedAt: string | null;
   purpose: string | null;
   notes: string | null;
   followUpDate: string | null;
@@ -280,6 +314,7 @@ export interface Visit {
   followUpDone: boolean;
   status: VisitStatus;
   products: VisitProduct[];
+  images: EntityImage[];
   user: { id: string; name: string; employeeCode: string | null };
   doctor: { id: string; name: string; specialization: string | null } | null;
   chemist: { id: string; shopName: string; ownerName: string } | null;
@@ -297,6 +332,7 @@ export interface CreateVisitPayload {
   lat?: number;
   lng?: number;
   locationAddress?: string;
+  locationCapturedAt?: string;
   purpose?: string;
   notes?: string;
   followUpDate?: string;

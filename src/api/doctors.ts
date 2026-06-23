@@ -16,4 +16,15 @@ export const doctorsApi = {
 
   delete: (id: string) =>
     api.delete<ApiResponse<Doctor>>(`/doctors/${id}`),
+
+  uploadImages: (id: string, files: File[]) => {
+    const form = new FormData();
+    files.forEach(f => form.append('files', f));
+    return api.post<ApiResponse<Doctor>>(`/doctors/${id}/images`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  deleteImage: (id: string, imageId: number) =>
+    api.delete<ApiResponse<{ message: string }>>(`/doctors/${id}/images/${imageId}`),
 };

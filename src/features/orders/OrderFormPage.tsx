@@ -34,7 +34,7 @@ export default function OrderFormPage() {
   const qc = useQueryClient();
 
   const { register, control, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as never,
     defaultValues: { items: [{ productName: '', quantity: 1, rate: 0, notes: '' }] },
   });
 

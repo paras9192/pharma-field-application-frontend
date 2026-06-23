@@ -159,11 +159,11 @@ export default function UserDetailPage() {
               {assignedChemistsQuery.data?.map(c => (
                 <div key={c.id} className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-slate-800 truncate">{c.shopName}</div>
-                    <div className="text-xs text-slate-400">{c.ownerName}{c.territory && ` · ${c.territory.name}`}</div>
+                    <div className="text-sm font-medium text-slate-800 truncate">{c.chemist.shopName}</div>
+                    <div className="text-xs text-slate-400">{c.chemist.ownerName}{c.chemist.territory && ` · ${c.chemist.territory.name}`}</div>
                   </div>
                   <button
-                    onClick={() => { if (confirm(`Remove ${c.shopName}?`)) removeChemistMutation.mutate(c.id); }}
+                    onClick={() => { if (confirm(`Remove ${c.chemist.shopName}?`)) removeChemistMutation.mutate(c.chemist.id); }}
                     className="p-1.5 ml-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
                   >
                     <X size={14} />
@@ -186,7 +186,7 @@ export default function UserDetailPage() {
         <AssignChemistsModal
           open={showAssignModal}
           salesPersonId={id!}
-          alreadyAssigned={assignedChemistsQuery.data ?? []}
+          alreadyAssigned={(assignedChemistsQuery.data ?? []).map(c => c.chemist as Chemist)}
           onClose={() => setShowAssignModal(false)}
           onSuccess={() => {
             qc.invalidateQueries({ queryKey: ['user-assigned-chemists', id] });

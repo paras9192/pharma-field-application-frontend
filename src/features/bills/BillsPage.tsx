@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Plus, Search, Receipt } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
+import { canCreateBill } from '@/utils/permissions';
 import { billsApi } from '@/api/bills';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -31,6 +33,7 @@ export default function BillsPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const currentRole = useAuthStore(s => s.user?.role);
 
   const query = useQuery({
     queryKey: ['bills', { search, status, page }],
@@ -46,9 +49,11 @@ export default function BillsPage() {
           <h2 className="text-xl font-bold text-slate-800">Bills</h2>
           {query.data && <p className="text-sm text-slate-400">{query.data.meta.total} total</p>}
         </div>
-        <Link to="/bills/new">
-          <Button size="sm"><Plus size={16} /> New Bill</Button>
-        </Link>
+        {currentRole && canCreateBill(currentRole) && (
+          <Link to="/bills/new">
+            <Button size="sm"><Plus size={16} /> New Bill</Button>
+          </Link>
+        )}
       </div>
 
       <div className="flex gap-2">

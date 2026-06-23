@@ -9,6 +9,8 @@ import { visitsApi } from '@/api/visits';
 import { doctorsApi } from '@/api/doctors';
 import { chemistsApi } from '@/api/chemists';
 import { territoriesApi } from '@/api/territories';
+import { useLocation } from '@/hooks/useLocation';
+import { LocationBanner } from '@/components/common/LocationBanner';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { Textarea } from '@/components/common/Textarea';
@@ -44,6 +46,7 @@ export default function VisitFormPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const isEdit = !!id;
+  const location = useLocation(!isEdit);
 
   const prefillDoctorId = searchParams.get('doctorId');
   const prefillChemistId = searchParams.get('chemistId');
@@ -117,6 +120,9 @@ export default function VisitFormPage() {
       chemistId: data.visitType === 'CHEMIST' ? data.chemistId : undefined,
       territoryId: data.territoryId ? Number(data.territoryId) : undefined,
       visitDate: data.visitDate,
+      lat: location.lat ?? undefined,
+      lng: location.lng ?? undefined,
+      locationCapturedAt: location.capturedAt ?? undefined,
       purpose: data.purpose || undefined,
       notes: data.notes || undefined,
       followUpDate: data.followUpDate || undefined,
@@ -165,6 +171,7 @@ export default function VisitFormPage() {
   return (
     <div className="p-4 max-w-xl mx-auto space-y-4">
       <h2 className="text-xl font-bold text-slate-800">{isEdit ? 'Edit Visit' : 'Log Visit'}</h2>
+      {!isEdit && <LocationBanner location={location} />}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {!isEdit && (
