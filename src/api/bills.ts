@@ -5,6 +5,7 @@ export const billsApi = {
   create: (data: {
     chemistId: string;
     orderId?: string;
+    originalBillId?: string;
     totalAmount: number;
     dueDate?: string;
     notes?: string;

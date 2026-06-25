@@ -1,8 +1,10 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Bell, LogOut } from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
 import { authApi } from '@/api/auth';
+import { removeFcmToken } from '@/hooks/usePushNotifications';
+import { NotificationBell } from '@/features/notifications/NotificationPanel';
 
 const routeTitles: Record<string, string> = {
   '/': 'Dashboard',
@@ -38,6 +40,7 @@ export function TopBar() {
   const title = routeTitles[location.pathname] || 'PharmaField';
 
   const handleLogout = async () => {
+    await removeFcmToken();
     try { await authApi.logout(refreshToken ?? undefined); } catch { /* ignore */ }
     logout();
   };
@@ -60,9 +63,7 @@ export function TopBar() {
         <h1 className="flex-1 font-semibold text-slate-800 truncate">{title}</h1>
 
         <div className="flex items-center gap-1">
-          <button className="p-2 rounded-xl hover:bg-slate-100 relative">
-            <Bell size={18} className="text-slate-500" />
-          </button>
+          <NotificationBell />
           <button
             onClick={() => navigate('/settings')}
             className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm"

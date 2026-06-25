@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Phone, Mail, MapPin, Building2, Trash2, Plus, ImageIcon } from 'lucide-react';
+import { Edit2, Phone, Mail, MapPin, Building2, Trash2, Plus, ImageIcon, Cake, Heart } from 'lucide-react';
 import { doctorsApi } from '@/api/doctors';
 import { useAuthStore } from '@/store/authStore';
 import { canEditOwnedRecord } from '@/utils/permissions';
@@ -147,6 +147,8 @@ export default function DoctorDetailPage() {
           {doc.email && <InfoRow icon={<Mail size={15} />} label="Email" value={doc.email} />}
           {doc.address && <InfoRow icon={<MapPin size={15} />} label="Address" value={doc.address} />}
           {doc.territory && <InfoRow icon={<MapPin size={15} />} label="Territory" value={doc.territory.name} />}
+          {doc.birthday && <InfoRow icon={<Cake size={15} />} label="Birthday" value={dayjs(doc.birthday).format('MMM D, YYYY')} />}
+          {doc.anniversary && <InfoRow icon={<Heart size={15} />} label="Anniversary" value={dayjs(doc.anniversary).format('MMM D, YYYY')} />}
         </div>
       </Card>
 

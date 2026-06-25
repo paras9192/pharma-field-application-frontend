@@ -204,7 +204,7 @@ export default function BillDetailPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <span className="font-bold text-slate-800 font-mono">{bill.billNumber}</span>
+              <span className="font-bold text-slate-800 font-mono">{bill.originalBillId ?? bill.billNumber}</span>
               <Badge variant={billStatusVariant[bill.status] as never}>{bill.status}</Badge>
             </div>
             <div className="text-sm text-slate-600">{bill.chemist.shopName}</div>
@@ -245,6 +245,7 @@ export default function BillDetailPage() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf"
+                capture="environment"
                 multiple
                 className="hidden"
                 onChange={handleFileChange}
@@ -320,6 +321,8 @@ export default function BillDetailPage() {
       <Card>
         <h3 className="font-semibold text-slate-700 mb-3">Bill Details</h3>
         <div className="space-y-2 text-sm">
+          {bill.originalBillId && <Row label="Bill No." value={bill.originalBillId} />}
+          <Row label="Database ID" value={bill.billNumber} />
           {bill.dueDate && (
             <Row label="Due Date" value={dayjs(bill.dueDate).format('MMM D, YYYY')} highlight={isOverdue ? 'red' : undefined} />
           )}

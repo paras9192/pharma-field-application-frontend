@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useAuthStore } from '@/store/authStore';
 import { Link } from 'react-router-dom';
-import { Plus, Search, ShoppingBag, Phone, MapPin, User } from 'lucide-react';
+import { Plus, Search, ShoppingBag, Phone, MapPin, User, Bell } from 'lucide-react';
 import { chemistsApi } from '@/api/chemists';
+import { billsApi } from '@/api/bills';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -10,6 +12,8 @@ import { Input } from '@/components/common/Input';
 import { ListSkeleton } from '@/components/feedback/Skeleton';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorMessage } from '@/components/feedback/ErrorMessage';
+import toast from 'react-hot-toast';
+import type { AxiosError } from 'axios';
 import type { Chemist } from '@/types/api';
 
 export default function ChemistsPage() {
@@ -22,6 +26,22 @@ export default function ChemistsPage() {
     select: r => r.data,
     placeholderData: prev => prev,
   });
+
+  const billsQuery = useQuery({
+    queryKey: ['bills-due-map'],
+    queryFn: () => billsApi.list({ limit: 500 }),
+    select: r => {
+      const map: Record<string, number> = {};
+      for (const bill of r.data.data) {
+        if (bill.status !== 'PAID' && bill.dueAmount > 0) {
+          map[bill.chemistId] = (map[bill.chemistId] ?? 0) + Number(bill.dueAmount);
+        }
+      }
+      return map;
+    },
+  });
+
+  const dueMap = billsQuery.data ?? {};
 
   return (
     <div className="p-4 space-y-4 max-w-2xl mx-auto">
@@ -56,7 +76,7 @@ export default function ChemistsPage() {
       ) : (
         <>
           <div className="space-y-3">
-            {query.data.data.map(c => <ChemistCard key={c.id} chemist={c} />)}
+            {query.data.data.map(c => <ChemistCard key={c.id} chemist={c} dueAmount={dueMap[c.id] ?? 0} />)}
           </div>
           {query.data.meta.totalPages > 1 && (
             <div className="flex items-center justify-between">
@@ -71,7 +91,22 @@ export default function ChemistsPage() {
   );
 }
 
-function ChemistCard({ chemist }: { chemist: Chemist }) {
+function ChemistCard({ chemist, dueAmount }: { chemist: Chemist; dueAmount: number }) {
+  const isAdmin = useAuthStore(s => s.isAdmin());
+  const reminderMutation = useMutation({
+    mutationFn: () => chemistsApi.sendReminder(chemist.id),
+    onSuccess: (res) => toast.success(res.data.data.message),
+    onError: (err: AxiosError<{ error: { message: string } }>) => {
+      toast.error(err.response?.data?.error?.message || 'Failed to send reminder');
+    },
+  });
+
+  const handleRemind = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    reminderMutation.mutate();
+  };
+
   return (
     <Link to={`/chemists/${chemist.id}`}>
       <Card className="hover:border-purple-200 transition-colors active:scale-[0.99]">
@@ -82,7 +117,18 @@ function ChemistCard({ chemist }: { chemist: Chemist }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="font-semibold text-slate-800 truncate">{chemist.shopName}</div>
-              {!chemist.isActive && <Badge variant="danger">Inactive</Badge>}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {!chemist.isActive && <Badge variant="danger">Inactive</Badge>}
+                {isAdmin && dueAmount > 0 && (
+                  <button
+                    onClick={handleRemind}
+                    disabled={reminderMutation.isPending}
+                    className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg px-2 py-1 hover:bg-green-100 transition-colors disabled:opacity-50"
+                  >
+                    <Bell size={11} /> {reminderMutation.isPending ? '...' : 'Remind'}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="text-sm text-slate-500">{chemist.ownerName}</div>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
@@ -92,6 +138,11 @@ function ChemistCard({ chemist }: { chemist: Chemist }) {
               {chemist.territory && (
                 <span className="text-xs text-slate-400 flex items-center gap-1">
                   <MapPin size={11} /> {chemist.territory.name}
+                </span>
+              )}
+              {isAdmin && dueAmount > 0 && (
+                <span className="text-xs font-semibold text-red-500">
+                  Due ₹{dueAmount.toLocaleString('en-IN')}
                 </span>
               )}
             </div>

@@ -2,8 +2,11 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/navigation/Sidebar';
 import { BottomNav } from '@/components/navigation/BottomNav';
 import { TopBar } from './TopBar';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export function AppLayout() {
+  usePushNotifications();
+
   return (
     <div className="flex h-full min-h-dvh bg-slate-50">
       <Sidebar />

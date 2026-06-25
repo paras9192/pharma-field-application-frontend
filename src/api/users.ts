@@ -31,4 +31,7 @@ export const usersApi = {
 
   removeAssignedChemist: (salesPersonId: string, chemistId: string) =>
     api.delete<ApiResponse<{ message: string }>>(`/users/${salesPersonId}/assigned-chemists/${chemistId}`),
+
+  sendResetLink: (id: string) =>
+    api.post<ApiResponse<{ message: string }>>(`/users/${id}/send-reset-link`),
 };

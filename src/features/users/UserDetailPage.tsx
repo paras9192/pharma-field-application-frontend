@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search } from 'lucide-react';
+import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send } from 'lucide-react';
 import { usersApi } from '@/api/users';
 import { chemistsApi } from '@/api/chemists';
 import { useAuthStore } from '@/store/authStore';
@@ -45,6 +45,14 @@ export default function UserDetailPage() {
     queryFn: () => usersApi.getAssignedChemists(id!),
     select: r => r.data.data,
     enabled: !!id && FIELD_ROLES.includes(query.data?.role?.name as Role),
+  });
+
+  const sendResetLinkMutation = useMutation({
+    mutationFn: () => usersApi.sendResetLink(id!),
+    onSuccess: (res) => toast.success(res.data.data.message),
+    onError: (err: AxiosError<{ error: { message: string } }>) => {
+      toast.error(err.response?.data?.error?.message || 'Failed to send reset link');
+    },
   });
 
   const removeChemistMutation = useMutation({
@@ -95,9 +103,19 @@ export default function UserDetailPage() {
             <Button variant="outline" size="sm" fullWidth><Edit2 size={14} /> Edit Profile</Button>
           </Link>
           {(currentUserRole === 'SUPER_ADMIN' || (currentUserRole === 'ADMIN' && user.role.name !== 'SUPER_ADMIN')) && (
-            <Button variant="ghost" size="sm" onClick={() => setShowResetModal(true)}>
-              <KeyRound size={14} /> Reset Password
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" onClick={() => setShowResetModal(true)}>
+                <KeyRound size={14} /> Reset Password
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                loading={sendResetLinkMutation.isPending}
+                onClick={() => sendResetLinkMutation.mutate()}
+              >
+                <Send size={14} /> Send Reset Link
+              </Button>
+            </>
           )}
         </div>
       </Card>

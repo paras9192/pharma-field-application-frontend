@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Phone, Mail, MapPin, Hash, Trash2, Plus, UserPlus, Search, ImageIcon } from 'lucide-react';
+import { Edit2, Phone, Mail, MapPin, Hash, Trash2, Plus, UserPlus, Search, ImageIcon, Bell } from 'lucide-react';
 import { chemistsApi } from '@/api/chemists';
+import { billsApi } from '@/api/bills';
 import { usersApi } from '@/api/users';
 import { useAuthStore } from '@/store/authStore';
 import { canEditOwnedRecord } from '@/utils/permissions';
@@ -71,6 +72,13 @@ export default function ChemistDetailPage() {
     },
   });
 
+  const billsQuery = useQuery({
+    queryKey: ['chemist-bills', id],
+    queryFn: () => billsApi.list({ chemistId: id!, limit: 200 }),
+    select: r => r.data.data,
+    enabled: !!id,
+  });
+
   if (query.isLoading) return <ListSkeleton />;
   if (query.isError) return <ErrorMessage onRetry={query.refetch} />;
 
@@ -80,6 +88,17 @@ export default function ChemistDetailPage() {
   const canEdit = currentUser
     ? canEditOwnedRecord(currentUser.id, c.addedBy?.id, currentUser.role)
     : false;
+
+  const unpaidBills = (billsQuery.data ?? []).filter(b => b.status !== 'PAID');
+  const totalDue = unpaidBills.reduce((sum, b) => sum + Number(b.dueAmount), 0);
+
+  const reminderMutation = useMutation({
+    mutationFn: () => chemistsApi.sendReminder(id!),
+    onSuccess: (res) => toast.success(res.data.data.message),
+    onError: (err: AxiosError<{ error: { message: string } }>) => {
+      toast.error(err.response?.data?.error?.message || 'Failed to send reminder');
+    },
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
@@ -118,6 +137,17 @@ export default function ChemistDetailPage() {
           <Link to={`/visits/new?chemistId=${id}&chemistName=${encodeURIComponent(c.shopName)}`} className={canEdit ? '' : 'flex-1'}>
             <Button size="sm" fullWidth={!canEdit}><Plus size={14} /> Log Visit</Button>
           </Link>
+          {isAdmin && totalDue > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              loading={reminderMutation.isPending}
+              onClick={() => reminderMutation.mutate()}
+              className="border-green-300 text-green-700 hover:bg-green-50"
+            >
+              <Bell size={14} /> Remind
+            </Button>
+          )}
           {isAdmin && (
             <>
               <Button variant="outline" size="sm" onClick={() => setShowAssignModal(true)}>
@@ -142,6 +172,12 @@ export default function ChemistDetailPage() {
           {c.address && <InfoRow icon={<MapPin size={15} />} label="Address" value={c.address} />}
           {c.territory && <InfoRow icon={<MapPin size={15} />} label="Territory" value={c.territory.name} />}
         </div>
+        {isAdmin && totalDue > 0 && (
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-sm text-slate-500">Outstanding Due</span>
+            <span className="text-sm font-bold text-red-600">₹{totalDue.toLocaleString('en-IN')}</span>
+          </div>
+        )}
       </Card>
 
       {/* Images */}

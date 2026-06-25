@@ -174,6 +174,8 @@ export interface Doctor {
   address: string | null;
   territoryId: number | null;
   territory: Pick<Territory, 'id' | 'name'> | null;
+  birthday: string | null;
+  anniversary: string | null;
   addedBy: { id: string; name: string } | null;
   isActive: boolean;
   latitude: string | null;
@@ -189,11 +191,13 @@ export interface CreateDoctorPayload {
   specialization?: string;
   clinicName?: string;
   hospitalName?: string;
-  phone?: string;
+  phone: string;
   alternatePhone?: string;
   email?: string;
   address?: string;
-  territoryId?: number;
+  territoryId: number;
+  birthday?: string;
+  anniversary?: string;
   latitude?: number;
   longitude?: number;
   locationCapturedAt?: string;
@@ -477,6 +481,7 @@ export interface BillImage {
 export interface Bill {
   id: string;
   billNumber: string;
+  originalBillId: string | null;
   chemistId: string;
   chemist: { id: string; shopName: string; ownerName: string };
   orderId: string | null;
@@ -771,4 +776,34 @@ export interface AlertsResponse {
   count: number
   generatedAt: string
   alerts: DashboardAlert[]
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export type NotificationType =
+  | 'PAYMENT_COLLECTED'
+  | 'BILL_CREATED'
+  | 'BILL_OVERDUE'
+  | 'PAYMENT_REMINDER_SENT'
+  | 'ORDER_CREATED'
+  | 'ORDER_STATUS_CHANGED'
+  | 'VISIT_LOGGED'
+  | 'GENERAL';
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  body: string;
+  type: NotificationType;
+  data: Record<string, string> | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  notifications: AppNotification[];
+  total: number;
+  unreadCount: number;
+  page: number;
+  limit: number;
 }

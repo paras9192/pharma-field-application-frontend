@@ -14,6 +14,7 @@ import { type AxiosError } from 'axios';
 
 const schema = z.object({
   chemistId: z.string().min(1, 'Select a chemist'),
+  originalBillId: z.string().min(1, 'Enter original bill number').trim(),
   totalAmount: z.coerce.number().min(0.01, 'Enter amount'),
   dueDate: z.string().optional(),
   notes: z.string().optional(),
@@ -48,6 +49,7 @@ export default function BillFormPage() {
     mutationFn: (data: FormData) => billsApi.create({
       chemistId: data.chemistId,
       orderId: prefillOrderId,
+      originalBillId: data.originalBillId || undefined,
       totalAmount: data.totalAmount,
       dueDate: data.dueDate || undefined,
       notes: data.notes || undefined,
@@ -81,6 +83,13 @@ export default function BillFormPage() {
             options={(chemistsQuery.data ?? []).map(c => ({ value: c.id, label: `${c.shopName} — ${c.ownerName}` }))}
             error={errors.chemistId?.message}
             {...register('chemistId')}
+          />
+          <Input
+            label="Bill Number"
+            placeholder="e.g. INV-2024-001"
+            required
+            error={errors.originalBillId?.message}
+            {...register('originalBillId')}
           />
           <Input
             label="Total Amount (₹)"

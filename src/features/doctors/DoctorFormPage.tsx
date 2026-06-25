@@ -20,11 +20,13 @@ const schema = z.object({
   specialization: z.string().optional(),
   clinicName: z.string().optional(),
   hospitalName: z.string().optional(),
-  phone: z.string().optional(),
+  phone: z.string().min(1, 'Phone is required'),
   alternatePhone: z.string().optional(),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   address: z.string().optional(),
-  territoryId: z.string().optional(),
+  territoryId: z.string().min(1, 'Territory is required'),
+  birthday: z.string().optional(),
+  anniversary: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -65,6 +67,8 @@ export default function DoctorFormPage() {
         email: doctor.email ?? '',
         address: doctor.address ?? '',
         territoryId: doctor.territoryId?.toString() ?? '',
+        birthday: doctor.birthday ?? '',
+        anniversary: doctor.anniversary ?? '',
       });
     }
   }, [doctor, reset]);
@@ -75,11 +79,13 @@ export default function DoctorFormPage() {
       specialization: data.specialization || undefined,
       clinicName: data.clinicName || undefined,
       hospitalName: data.hospitalName || undefined,
-      phone: data.phone || undefined,
+      phone: data.phone,
       alternatePhone: data.alternatePhone || undefined,
       email: data.email || undefined,
       address: data.address || undefined,
-      territoryId: data.territoryId ? Number(data.territoryId) : undefined,
+      territoryId: Number(data.territoryId),
+      birthday: data.birthday || undefined,
+      anniversary: data.anniversary || undefined,
       latitude: location.lat ?? undefined,
       longitude: location.lng ?? undefined,
       locationCapturedAt: location.capturedAt ?? undefined,
@@ -100,11 +106,13 @@ export default function DoctorFormPage() {
       specialization: data.specialization || undefined,
       clinicName: data.clinicName || undefined,
       hospitalName: data.hospitalName || undefined,
-      phone: data.phone || undefined,
+      phone: data.phone,
       alternatePhone: data.alternatePhone || undefined,
       email: data.email || undefined,
       address: data.address || undefined,
-      territoryId: data.territoryId ? Number(data.territoryId) : undefined,
+      territoryId: Number(data.territoryId),
+      birthday: data.birthday || undefined,
+      anniversary: data.anniversary || undefined,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['doctor', id] });
@@ -136,7 +144,7 @@ export default function DoctorFormPage() {
           <Input label="Specialization" placeholder="Cardiologist" {...register('specialization')} />
           <Input label="Clinic Name" placeholder="Heart Care Clinic" {...register('clinicName')} />
           <Input label="Hospital Name" placeholder="City Hospital" {...register('hospitalName')} />
-          <Input label="Phone" type="tel" placeholder="9876543210" {...register('phone')} />
+          <Input label="Phone" type="tel" placeholder="9876543210" required error={errors.phone?.message} {...register('phone')} />
           <Input label="Alternate Phone" type="tel" placeholder="9876543211" {...register('alternatePhone')} />
           <Input label="Email" type="email" placeholder="dr.raj@hospital.com" error={errors.email?.message} {...register('email')} />
           <Input label="Address" placeholder="123 Main St, Mumbai" {...register('address')} />
@@ -144,8 +152,12 @@ export default function DoctorFormPage() {
             label="Territory"
             options={territoryOptions}
             placeholder="Select territory"
+            required
+            error={errors.territoryId?.message}
             {...register('territoryId')}
           />
+          <Input label="Birthday" type="date" error={errors.birthday?.message} {...register('birthday')} />
+          <Input label="Anniversary" type="date" error={errors.anniversary?.message} {...register('anniversary')} />
 
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="outline" fullWidth onClick={() => navigate(-1)}>Cancel</Button>

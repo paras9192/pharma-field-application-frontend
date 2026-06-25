@@ -27,4 +27,7 @@ export const chemistsApi = {
 
   deleteImage: (id: string, imageId: number) =>
     api.delete<ApiResponse<{ message: string }>>(`/chemists/${id}/images/${imageId}`),
+
+  sendReminder: (id: string) =>
+    api.post<ApiResponse<{ message: string; billCount: number }>>(`/chemists/${id}/payment-reminder`),
 };

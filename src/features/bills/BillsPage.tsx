@@ -115,7 +115,7 @@ function BillCard({ bill }: { bill: Bill }) {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <span className="font-semibold text-slate-800 font-mono text-sm">{bill.billNumber}</span>
+              <span className="font-semibold text-slate-800 font-mono text-sm">{bill.originalBillId ?? bill.billNumber}</span>
               <Badge variant={billStatusVariant[bill.status] as never}>{bill.status}</Badge>
             </div>
             <div className="text-sm text-slate-600 mt-0.5">{bill.chemist.shopName}</div>

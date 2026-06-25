@@ -33,7 +33,7 @@ export default defineConfig({
           {
             urlPattern: /^https:\/\/.*\/api\/v1\/.*/i,
             handler: 'NetworkFirst',
-            options: { cacheName: 'api-cache', expiration: { maxEntries: 50, maxAgeSeconds: 300 } },
+            options: { cacheName: 'api-cache', networkTimeoutSeconds: 10, expiration: { maxEntries: 50, maxAgeSeconds: 300 } },
           },
         ],
       },
