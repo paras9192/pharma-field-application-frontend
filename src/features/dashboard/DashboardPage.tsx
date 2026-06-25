@@ -63,7 +63,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (role === 'MR') {
+  if (role === 'MR' || role === 'ASM' || role === 'ZSM') {
     return (
       <div className="p-4 space-y-5 max-w-2xl mx-auto lg:max-w-4xl">
         {greeting}

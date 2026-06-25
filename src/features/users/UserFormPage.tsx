@@ -19,7 +19,7 @@ const createSchema = z.object({
   email: z.string().email('Invalid email'),
   phone: z.string().min(10, 'Phone required'),
   password: z.string().min(8, 'Min 8 chars').regex(/[A-Z]/, 'Need uppercase').regex(/[a-z]/, 'Need lowercase').regex(/[0-9]/, 'Need number'),
-  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MR', 'SALES_PERSON']),
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MR', 'ASM', 'ZSM', 'SALES_PERSON']),
   employeeCode: z.string().optional(),
   dateOfJoining: z.string().optional(),
 });
@@ -27,6 +27,7 @@ const createSchema = z.object({
 const editSchema = z.object({
   name: z.string().min(1, 'Name required'),
   phone: z.string().min(10, 'Phone required'),
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MR', 'ASM', 'ZSM', 'SALES_PERSON']),
   employeeCode: z.string().optional(),
   dateOfJoining: z.string().optional(),
 });
@@ -64,6 +65,7 @@ export default function UserFormPage() {
       editForm.reset({
         name: user.name,
         phone: user.phone,
+        role: user.role?.name as EditFormData['role'],
         employeeCode: user.employeeCode ?? '',
         dateOfJoining: user.dateOfJoining ? user.dateOfJoining.split('T')[0] : '',
       });
@@ -94,6 +96,7 @@ export default function UserFormPage() {
     mutationFn: (data: EditFormData) => usersApi.update(id!, {
       name: data.name,
       phone: data.phone,
+      role: data.role,
       employeeCode: data.employeeCode || undefined,
       dateOfJoining: data.dateOfJoining || undefined,
     }),
@@ -144,6 +147,20 @@ export default function UserFormPage() {
           <form onSubmit={handleSubmit(data => updateMutation.mutate(data))} className="space-y-4">
             <Input label="Full Name" required error={errors.name?.message} {...register('name')} />
             <Input label="Phone" type="tel" required error={errors.phone?.message} {...register('phone')} />
+            <Select
+              label="Role"
+              required
+              options={[
+                { value: 'MR', label: 'Medical Representative (MR)' },
+                { value: 'ASM', label: 'Area Sales Manager (ASM)' },
+                { value: 'ZSM', label: 'Zonal Sales Manager (ZSM)' },
+                { value: 'SALES_PERSON', label: 'Sales Person' },
+                { value: 'ADMIN', label: 'Admin' },
+                { value: 'SUPER_ADMIN', label: 'Super Admin' },
+              ]}
+              error={errors.role?.message}
+              {...register('role')}
+            />
             <Input label="Employee Code" placeholder="EMP001" {...register('employeeCode')} />
             <Input label="Date of Joining" type="date" {...register('dateOfJoining')} />
             <div className="flex gap-3 pt-2">
@@ -194,6 +211,8 @@ export default function UserFormPage() {
             required
             options={[
               { value: 'MR', label: 'Medical Representative (MR)' },
+              { value: 'ASM', label: 'Area Sales Manager (ASM)' },
+              { value: 'ZSM', label: 'Zonal Sales Manager (ZSM)' },
               { value: 'SALES_PERSON', label: 'Sales Person' },
               { value: 'ADMIN', label: 'Admin' },
               { value: 'SUPER_ADMIN', label: 'Super Admin' },

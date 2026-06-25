@@ -64,6 +64,8 @@ export default function UsersPage() {
           { value: 'SUPER_ADMIN', label: 'Super Admin' },
           { value: 'ADMIN', label: 'Admin' },
           { value: 'MR', label: 'MR' },
+          { value: 'ASM', label: 'ASM' },
+          { value: 'ZSM', label: 'ZSM' },
           { value: 'SALES_PERSON', label: 'Sales Person' },
         ]}
         placeholder="All roles"
@@ -112,6 +114,8 @@ function UserCard({ user, onToggle, toggling, canToggle }: { user: User; onToggl
     SUPER_ADMIN: 'purple',
     ADMIN: 'info',
     MR: 'success',
+    ASM: 'success',
+    ZSM: 'success',
     SALES_PERSON: 'warning',
   };
 

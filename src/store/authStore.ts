@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
 
       isField: () => {
         const role = get().user?.role as Role | undefined;
-        return role === 'MR' || role === 'SALES_PERSON';
+        return role === 'MR' || role === 'ASM' || role === 'ZSM' || role === 'SALES_PERSON';
       },
     }),
     {

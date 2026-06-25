@@ -79,6 +79,14 @@ export default function ChemistDetailPage() {
     enabled: !!id,
   });
 
+  const reminderMutation = useMutation({
+    mutationFn: () => chemistsApi.sendReminder(id!),
+    onSuccess: (res) => toast.success(res.data.data.message),
+    onError: (err: AxiosError<{ error: { message: string } }>) => {
+      toast.error(err.response?.data?.error?.message || 'Failed to send reminder');
+    },
+  });
+
   if (query.isLoading) return <ListSkeleton />;
   if (query.isError) return <ErrorMessage onRetry={query.refetch} />;
 
@@ -91,14 +99,6 @@ export default function ChemistDetailPage() {
 
   const unpaidBills = (billsQuery.data ?? []).filter(b => b.status !== 'PAID');
   const totalDue = unpaidBills.reduce((sum, b) => sum + Number(b.dueAmount), 0);
-
-  const reminderMutation = useMutation({
-    mutationFn: () => chemistsApi.sendReminder(id!),
-    onSuccess: (res) => toast.success(res.data.data.message),
-    onError: (err: AxiosError<{ error: { message: string } }>) => {
-      toast.error(err.response?.data?.error?.message || 'Failed to send reminder');
-    },
-  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);

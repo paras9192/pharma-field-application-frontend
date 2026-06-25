@@ -45,6 +45,8 @@ export function BottomNav() {
           { to: '/visits',   icon: ClipboardList,   label: 'Visits'   },
         ];
       case 'MR':
+      case 'ASM':
+      case 'ZSM':
         return [
           { to: '/',         icon: LayoutDashboard, label: 'Home'     },
           { to: '/doctors',  icon: Stethoscope,     label: 'Doctors'  },
@@ -84,6 +86,8 @@ export function BottomNav() {
           { to: '/settings',          icon: Settings,       label: 'Settings'    },
         ];
       case 'MR':
+      case 'ASM':
+      case 'ZSM':
         return [
           { to: '/daily-reports', icon: FileText,    label: 'Reports'    },
           { to: '/attendance',    icon: UserCheck,   label: 'Attendance' },

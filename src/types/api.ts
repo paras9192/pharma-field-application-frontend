@@ -35,7 +35,7 @@ export interface PaginationParams {
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MR' | 'SALES_PERSON';
+export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MR' | 'ASM' | 'ZSM' | 'SALES_PERSON';
 export type VisitType = 'DOCTOR' | 'CHEMIST';
 export type VisitStatus = 'COMPLETED' | 'CANCELLED' | 'PENDING';
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'HALF_DAY' | 'LEAVE';
@@ -89,6 +89,7 @@ export interface CreateUserPayload {
 export interface UpdateUserPayload {
   name?: string;
   phone?: string;
+  role?: Role;
   employeeCode?: string;
   profilePhoto?: string;
   dateOfJoining?: string;

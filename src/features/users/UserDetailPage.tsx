@@ -78,6 +78,8 @@ export default function UserDetailPage() {
     SUPER_ADMIN: 'purple',
     ADMIN: 'info',
     MR: 'success',
+    ASM: 'success',
+    ZSM: 'success',
     SALES_PERSON: 'warning',
   };
 
