@@ -1,5 +1,4 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -53,7 +52,6 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    alias: { '@': '/Users/paraslohia/pharma-field-app/src' },
     coverage: { reporter: ['text', 'html'], include: ['src/utils/**', 'src/store/**', 'src/api/axios.ts'] },
   },
 })
