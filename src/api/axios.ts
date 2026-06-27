@@ -26,12 +26,19 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
+// Auth endpoints handle their own 401s (e.g. wrong login credentials).
+// The session-refresh logic below must never run for them, otherwise a failed
+// login would clear tokens and hard-redirect to /login (page reload) instead
+// of letting the form show its error.
+const isAuthRoute = (url?: string) =>
+  !!url && (url.includes('/auth/login') || url.includes('/auth/refresh'));
+
 api.interceptors.response.use(
   response => response,
   async (error: AxiosError) => {
     const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !original._retry) {
+    if (error.response?.status === 401 && !original._retry && !isAuthRoute(original.url)) {
       original._retry = true;
 
       const refreshToken = getRefreshToken();

@@ -160,4 +160,29 @@ describe('Axios 401 interceptor', () => {
     expect(mockAxiosPost).not.toHaveBeenCalled();
     expect(localStorage.getItem('accessToken')).toBe('some-token');
   });
+
+  it('does NOT redirect on a 401 from /auth/login (wrong credentials show inline error)', async () => {
+    const { api } = await import('@/api/axios');
+
+    const error = makeAxiosError(401, { url: '/auth/login' });
+    // @ts-expect-error – accessing private handler
+    const handler = api.interceptors.response.handlers[0];
+
+    await expect(handler.rejected(error)).rejects.toBeDefined();
+    // Must NOT trigger refresh or a hard redirect — the form handles it
+    expect(mockAxiosPost).not.toHaveBeenCalled();
+    expect(window.location.href).toBe('');
+  });
+
+  it('does NOT loop on a 401 from /auth/refresh', async () => {
+    localStorage.setItem('refreshToken', 'old-refresh');
+    const { api } = await import('@/api/axios');
+
+    const error = makeAxiosError(401, { url: '/auth/refresh' });
+    // @ts-expect-error – accessing private handler
+    const handler = api.interceptors.response.handlers[0];
+
+    await expect(handler.rejected(error)).rejects.toBeDefined();
+    expect(mockAxiosPost).not.toHaveBeenCalled();
+  });
 });
