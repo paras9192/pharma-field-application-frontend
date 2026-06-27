@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Mail, Lock, Pill } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import srlLogo from '@/assets/logo.png';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { authApi } from '@/api/auth';
@@ -40,27 +41,32 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-blue-900 p-6">
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex w-16 h-16 bg-blue-600 rounded-2xl items-center justify-center mb-4 shadow-xl">
-            <Pill size={32} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">PharmaField</h1>
-          <p className="text-blue-300 text-sm mt-1">Field Force Management</p>
-        </div>
+    <div className="min-h-dvh w-full flex flex-col lg:flex-row">
 
-        {/* Card */}
-        <div className="bg-white rounded-3xl p-6 shadow-2xl">
-          <h2 className="text-xl font-bold text-slate-800 mb-1">Welcome back</h2>
-          <p className="text-sm text-slate-400 mb-6">Sign in to continue</p>
+      {/* Left panel — brand */}
+      <div className="hidden lg:flex flex-col items-center justify-center w-2/5 bg-slate-50 border-r border-slate-100 p-12">
+        <img src={srlLogo} alt="SRL Life" className="w-60 object-contain" />
+      </div>
+
+      {/* Right panel — form */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-white w-full min-h-dvh lg:min-h-0 px-6 py-10">
+        <div className="w-full max-w-xs">
+
+          {/* Mobile logo */}
+          <div className="flex justify-center mb-8 lg:hidden">
+            <img src={srlLogo} alt="SRL Life" className="w-40 object-contain" />
+          </div>
+
+          <div className="mb-6 text-center lg:text-left">
+            <h2 className="text-2xl font-bold text-slate-800 mb-1">Welcome back</h2>
+            <p className="text-sm text-slate-400">Sign in to your account</p>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
               label="Email"
               type="email"
-              placeholder="you@company.com"
+              placeholder="you@srllife.com"
               leftIcon={<Mail size={16} />}
               error={errors.email?.message}
               {...register('email')}
@@ -84,11 +90,11 @@ export default function LoginPage() {
               Sign In
             </Button>
           </form>
-        </div>
 
-        <p className="text-center text-blue-300/60 text-xs mt-6">
-          Pharma Field Force Manager v1.0
-        </p>
+          <p className="text-center text-slate-300 text-xs mt-10">
+            SRL PULSE v1.0 · Life is precious
+          </p>
+        </div>
       </div>
     </div>
   );

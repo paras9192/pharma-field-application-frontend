@@ -17,7 +17,7 @@ import { type AxiosError } from 'axios';
 const createSchema = z.object({
   name: z.string().min(1, 'Name required'),
   email: z.string().email('Invalid email'),
-  phone: z.string().min(10, 'Phone required'),
+  phone: z.string().trim().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
   password: z.string().min(8, 'Min 8 chars').regex(/[A-Z]/, 'Need uppercase').regex(/[a-z]/, 'Need lowercase').regex(/[0-9]/, 'Need number'),
   role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MR', 'SALES_PERSON']),
   employeeCode: z.string().optional(),
@@ -26,7 +26,7 @@ const createSchema = z.object({
 
 const editSchema = z.object({
   name: z.string().min(1, 'Name required'),
-  phone: z.string().min(10, 'Phone required'),
+  phone: z.string().trim().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
   employeeCode: z.string().optional(),
   dateOfJoining: z.string().optional(),
 });

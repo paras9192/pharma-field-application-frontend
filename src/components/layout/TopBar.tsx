@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import srlLogo from '@/assets/logo.png';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -37,7 +38,7 @@ export function TopBar() {
   })));
 
   const isRoot = ['/', '/attendance', '/visits', '/doctors', '/chemists', '/daily-reports', '/users', '/territories', '/settings'].includes(location.pathname);
-  const title = routeTitles[location.pathname] || 'PharmaField';
+  const title = routeTitles[location.pathname] || 'SRL PULSE';
 
   const handleLogout = async () => {
     await removeFcmToken();
@@ -47,22 +48,20 @@ export function TopBar() {
 
   return (
     <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-100 lg:hidden">
-      <div className="flex items-center gap-3 px-4 h-14">
+      <div className={`flex items-center gap-3 px-4 ${isRoot ? 'h-20' : 'h-14'}`}>
         {!isRoot ? (
           <button onClick={() => navigate(-1)} className="p-1.5 rounded-xl hover:bg-slate-100 -ml-1">
             <ArrowLeft size={20} className="text-slate-600" />
           </button>
         ) : (
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs">P</span>
-            </div>
-          </div>
+          <img src={srlLogo} alt="SRL Life" className="h-16 w-auto object-contain" />
         )}
 
-        <h1 className="flex-1 font-semibold text-slate-800 truncate">{title}</h1>
+        {!isRoot && (
+          <h1 className="flex-1 font-semibold text-slate-800 truncate">{title}</h1>
+        )}
 
-        <div className="flex items-center gap-1">
+        <div className={`flex items-center gap-1 ${isRoot ? 'ml-auto' : ''}`}>
           <NotificationBell />
           <button
             onClick={() => navigate('/settings')}

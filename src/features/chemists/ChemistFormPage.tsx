@@ -18,8 +18,8 @@ import { type AxiosError } from 'axios';
 const schema = z.object({
   shopName: z.string().min(1, 'Shop name required'),
   ownerName: z.string().min(1, 'Owner name required'),
-  phone: z.string().min(1, 'Phone required'),
-  alternatePhone: z.string().optional(),
+  phone: z.string().trim().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
+  alternatePhone: z.string().trim().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number').optional().or(z.literal('')),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   gstNumber: z.string().optional(),
   address: z.string().optional(),

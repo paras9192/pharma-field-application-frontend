@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import srlLogo from '@/assets/logo.png';
 import {
   LayoutDashboard, Users, Stethoscope, Pill, MapPin, CalendarCheck,
   ClipboardList, FileText, LogOut, Settings, ShoppingCart, Receipt, IndianRupee, TrendingUp
@@ -52,16 +53,8 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-slate-200 h-screen sticky top-0">
       {/* Logo */}
-      <div className="p-6 border-b border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
-            <Pill size={18} className="text-white" />
-          </div>
-          <div>
-            <div className="font-bold text-slate-800 leading-tight">PharmaField</div>
-            <div className="text-xs text-slate-400">Field Force Manager</div>
-          </div>
-        </div>
+      <div className="py-5 border-b border-slate-100 flex justify-center">
+        <img src={srlLogo} alt="SRL Life" className="w-40 object-contain" />
       </div>
 
       {/* Nav links */}

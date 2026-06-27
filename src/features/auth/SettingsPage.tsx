@@ -135,7 +135,7 @@ export default function SettingsPage() {
         <LogOut size={16} /> Sign Out
       </Button>
 
-      <p className="text-center text-xs text-slate-400 pb-4">PharmaField v1.0</p>
+      <p className="text-center text-xs text-slate-400 pb-4">SRL PULSE v1.0 · Life is precious</p>
     </div>
   );
 }

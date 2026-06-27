@@ -14,6 +14,9 @@ export const territoriesApi = {
   getState: (id: number) =>
     api.get<ApiResponse<State>>(`/territories/states/${id}`),
 
+  updateState: (id: number, data: { name?: string; code?: string }) =>
+    api.patch<ApiResponse<State>>(`/territories/states/${id}`, data),
+
   createDistrict: (data: { name: string; stateId: number }) =>
     api.post<ApiResponse<District>>('/territories/districts', data),
 
@@ -23,11 +26,17 @@ export const territoriesApi = {
   getDistrict: (id: number) =>
     api.get<ApiResponse<District>>(`/territories/districts/${id}`),
 
+  updateDistrict: (id: number, data: { name?: string; stateId?: number }) =>
+    api.patch<ApiResponse<District>>(`/territories/districts/${id}`, data),
+
   createCity: (data: { name: string; districtId: number }) =>
     api.post<ApiResponse<City>>('/territories/cities', data),
 
   getCities: (districtId?: number) =>
     api.get<ApiResponse<City[]>>('/territories/cities', { params: { districtId } }),
+
+  updateCity: (id: number, data: { name?: string; districtId?: number }) =>
+    api.patch<ApiResponse<City>>(`/territories/cities/${id}`, data),
 
   create: (data: { name: string; cityId: number; code?: string; description?: string }) =>
     api.post<ApiResponse<Territory>>('/territories', data),

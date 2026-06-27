@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -12,9 +13,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Pharma Field Force',
-        short_name: 'PharmaField',
-        description: 'Pharma field force management application',
+        name: 'SRL PULSE',
+        short_name: 'SRL PULSE',
+        description: 'SRL Life field force management application',
         theme_color: '#0f172a',
         background_color: '#ffffff',
         display: 'standalone',
@@ -47,5 +48,12 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://localhost:3000', changeOrigin: true },
     },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    alias: { '@': '/Users/paraslohia/pharma-field-app/src' },
+    coverage: { reporter: ['text', 'html'], include: ['src/utils/**', 'src/store/**', 'src/api/axios.ts'] },
   },
 })
