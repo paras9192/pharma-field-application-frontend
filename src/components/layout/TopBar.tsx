@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import srlLogo from '@/assets/logo.png';
+import { Avatar } from '@/components/common/Avatar';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -63,11 +64,12 @@ export function TopBar() {
 
         <div className={`flex items-center gap-1 ${isRoot ? 'ml-auto' : ''}`}>
           <NotificationBell />
-          <button
-            onClick={() => navigate('/settings')}
-            className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold text-sm"
-          >
-            {user?.name?.[0]?.toUpperCase()}
+          <button onClick={() => navigate('/settings')} className="rounded-full">
+            <Avatar
+              name={user?.name}
+              src={user?.profilePhoto}
+              className="w-8 h-8 rounded-full text-sm"
+            />
           </button>
           <button
             onClick={handleLogout}

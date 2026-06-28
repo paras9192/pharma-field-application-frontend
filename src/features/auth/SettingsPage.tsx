@@ -20,6 +20,7 @@ import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { Textarea } from '@/components/common/Textarea';
 import { CameraInput } from '@/components/common/CameraInput';
+import { Avatar } from '@/components/common/Avatar';
 import { Skeleton } from '@/components/feedback/Skeleton';
 import type { MyProfile, ProfileDocumentType, UpdateMePayload, Gender } from '@/types/api';
 import toast from 'react-hot-toast';
@@ -95,7 +96,9 @@ export default function SettingsPage() {
   const formValues = useMemo<ProfileFormData>(() => ({
     name: profile?.name ?? '',
     phone: profile?.phone ?? '',
-    dateOfBirth: profile?.dateOfBirth ?? '',
+    // <input type="date"> needs a bare YYYY-MM-DD; the API returns a full ISO
+    // datetime, which the date input cannot display (field would show blank).
+    dateOfBirth: profile?.dateOfBirth ? profile.dateOfBirth.split('T')[0] : '',
     gender: profile?.gender ?? '',
     bloodGroup: profile?.bloodGroup ?? '',
     address: profile?.address ?? '',
@@ -183,13 +186,11 @@ export default function SettingsPage() {
       {/* Profile header + photo */}
       <Card>
         <div className="flex items-center gap-4">
-          {profile?.profilePhoto ? (
-            <img src={profile.profilePhoto} alt={profile.name} className="w-16 h-16 rounded-2xl object-cover bg-slate-100" />
-          ) : (
-            <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 font-bold text-2xl">
-              {(profile?.name ?? storeUser?.name)?.[0]?.toUpperCase()}
-            </div>
-          )}
+          <Avatar
+            name={profile?.name ?? storeUser?.name}
+            src={profile?.profilePhoto ?? storeUser?.profilePhoto}
+            className="w-16 h-16 rounded-2xl text-2xl flex-shrink-0"
+          />
           <div className="min-w-0">
             <div className="text-lg font-bold text-slate-800 truncate">{profile?.name ?? storeUser?.name}</div>
             <div className="text-sm text-slate-500 truncate">{profile?.email ?? storeUser?.email}</div>

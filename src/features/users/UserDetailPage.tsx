@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
+import { Avatar } from '@/components/common/Avatar';
 import { Input } from '@/components/common/Input';
 import { Modal } from '@/components/common/Modal';
 import { ListSkeleton } from '@/components/feedback/Skeleton';
@@ -85,9 +86,12 @@ export default function UserDetailPage() {
     <div className="p-4 space-y-4 max-w-2xl mx-auto">
       <Card>
         <div className="flex items-start gap-4">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-xl flex-shrink-0 ${user.isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
-            {user.name[0].toUpperCase()}
-          </div>
+          <Avatar
+            name={user.name}
+            src={user.profilePhoto}
+            className="w-16 h-16 rounded-2xl text-xl flex-shrink-0"
+            fallbackClassName={user.isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}
+          />
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-slate-800">{user.name}</h2>
