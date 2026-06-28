@@ -60,3 +60,103 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ============================================================
+   Login page — desktop brand panel animations
+   ============================================================ */
+
+/* Slowly drifting gradient background */
+@keyframes loginGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.animate-login-gradient {
+  background-size: 220% 220%;
+  animation: loginGradient 16s ease-in-out infinite;
+}
+
+/* Gentle vertical float (orbs + logo card) */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-16px); }
+}
+.animate-float        { animation: floatY 6s  ease-in-out infinite; }
+.animate-float-slow   { animation: floatY 9s  ease-in-out infinite; }
+.animate-float-slower { animation: floatY 13s ease-in-out infinite; }
+
+/* Downward-only bob — used where upward motion would clip a top edge */
+@keyframes floatDown {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(12px); }
+}
+.animate-bob { animation: floatDown 6s ease-in-out infinite; }
+
+/* Soft pulsing glow ring behind the logo card */
+@keyframes glowPulse {
+  0%, 100% { transform: scale(1);    opacity: 0.50; }
+  50%      { transform: scale(1.12); opacity: 0.85; }
+}
+.animate-glow { animation: glowPulse 4.5s ease-in-out infinite; }
+
+/* Live heartbeat monitor — seamless horizontal scroll (one beat = 120px) */
+@keyframes ecgScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-120px); }
+}
+.animate-ecg { animation: ecgScroll 3s linear infinite; }
+
+/* Staggered entrance for content */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { opacity: 0; animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+/* ============================================================
+   App-wide polish — reused across pages
+   ============================================================ */
+
+/* Snappy per-route page entrance (keyed on pathname in AppLayout) */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in { animation: pageIn 0.42s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Brand gradient — the signature teal→navy from the login screen */
+.bg-brand-gradient {
+  background-image: linear-gradient(135deg, #0DBBBD 0%, #0a8f91 42%, #0d3b4f 100%);
+}
+
+/* Soft interactive lift for cards/tiles */
+.card-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -12px rgb(15 23 42 / 0.22);
+}
+
+/* Staggered list entrance — apply with an inline animation-delay */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-rise { opacity: 0; animation: riseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-login-gradient,
+  .animate-float,
+  .animate-float-slow,
+  .animate-float-slower,
+  .animate-bob,
+  .animate-glow,
+  .animate-ecg,
+  .animate-fade-up,
+  .animate-page-in,
+  .animate-rise {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .card-lift:hover { transform: none; }
+}

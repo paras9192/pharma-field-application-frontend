@@ -9,6 +9,7 @@ import { ListSkeleton } from '@/components/feedback/Skeleton';
 import { ErrorMessage } from '@/components/feedback/ErrorMessage';
 import dayjs from 'dayjs';
 import type { AdminDashboard, EmployeeDashboard } from '@/types/api';
+import { ecgPath } from '@/lib/ecg';
 import SuperAdminDashboardPage from './SuperAdminDashboardPage';
 import SalesPersonDashboardPage from './SalesPersonDashboardPage';
 import MRDashboardPage from './MRDashboardPage';
@@ -36,11 +37,26 @@ export default function DashboardPage() {
   });
 
   const greeting = (
-    <div>
-      <h2 className="text-xl font-bold text-slate-800">
-        Good {getGreeting()}, {user?.name?.split(' ')[0]} 👋
-      </h2>
-      <p className="text-sm text-slate-400">{dayjs().format('dddd, MMMM D, YYYY')}</p>
+    <div className="relative overflow-hidden rounded-3xl px-5 py-6 bg-brand-gradient animate-login-gradient shadow-lg shadow-teal-950/20">
+      {/* Floating ambient orbs */}
+      <div className="pointer-events-none absolute -top-10 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl animate-float-slow" />
+      <div className="pointer-events-none absolute -bottom-14 left-8 h-36 w-36 rounded-full bg-teal-200/10 blur-2xl animate-float-slower" />
+
+      {/* Live heartbeat line along the bottom */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 overflow-hidden opacity-20">
+        <svg width="1200" height="80" viewBox="0 0 1200 80" fill="none" className="animate-ecg">
+          <path d={ecgPath} stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+
+      <div className="relative z-10">
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/60">
+          {dayjs().format('dddd, MMMM D, YYYY')}
+        </p>
+        <h2 className="mt-1.5 text-2xl font-bold text-white">
+          Good {getGreeting()}, {user?.name?.split(' ')[0]} 👋
+        </h2>
+      </div>
     </div>
   );
 

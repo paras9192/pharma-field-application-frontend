@@ -1,5 +1,5 @@
 import { api } from './axios';
-import type { ApiResponse, PaginatedResponse, User, SalesPersonChemist, CreateUserPayload, UpdateUserPayload } from '@/types/api';
+import type { ApiResponse, PaginatedResponse, User, SalesPersonChemist, CreateUserPayload, UpdateUserPayload, MyProfile, UpdateMePayload, ProfileDocumentType } from '@/types/api';
 
 export const usersApi = {
   create: (data: CreateUserPayload) =>
@@ -19,6 +19,26 @@ export const usersApi = {
 
   changePassword: (currentPassword: string, newPassword: string) =>
     api.post<ApiResponse<{ message: string }>>('/users/me/change-password', { currentPassword, newPassword }),
+
+  // ── Own profile (any authenticated user) ──
+  updateMe: (data: UpdateMePayload) =>
+    api.patch<ApiResponse<MyProfile>>('/users/me', data),
+
+  uploadPhoto: (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post<ApiResponse<MyProfile>>('/users/me/photo', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  uploadDocument: (type: ProfileDocumentType, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api.post<ApiResponse<MyProfile>>(`/users/me/documents/${type}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 
   resetPassword: (id: string, password: string) =>
     api.post<ApiResponse<{ message: string }>>(`/users/${id}/reset-password`, { password }),

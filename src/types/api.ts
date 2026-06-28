@@ -36,6 +36,7 @@ export interface PaginationParams {
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MR' | 'SALES_PERSON';
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 export type VisitType = 'DOCTOR' | 'CHEMIST';
 export type VisitStatus = 'COMPLETED' | 'CANCELLED' | 'PENDING';
 export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'HALF_DAY' | 'LEAVE';
@@ -58,6 +59,53 @@ export interface LoginResponse {
   refreshToken: string;
   user: AuthUser;
 }
+
+// Full own-profile shape returned by GET /auth/me and every /users/me write.
+// Note: unlike AuthUser (login), `role` here is the object form { id, name }.
+export interface MyProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  employeeCode: string | null;
+  profilePhoto: string | null;
+  dateOfJoining: string | null;
+  isActive: boolean;
+
+  dateOfBirth: string | null;
+  gender: Gender | null;
+  bloodGroup: string | null;
+  address: string | null;
+  bio: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+
+  aadhaarUrl: string | null;
+  panUrl: string | null;
+  tenthMarksheetUrl: string | null;
+
+  role: { id: number; name: Role };
+  createdAt: string;
+  updatedAt: string;
+
+  profileComplete: boolean;
+  missingProfileFields: string[];
+}
+
+// PATCH /users/me — all optional, send only what changed.
+export interface UpdateMePayload {
+  name?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  gender?: Gender;
+  bloodGroup?: string;
+  address?: string;
+  bio?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+}
+
+export type ProfileDocumentType = 'aadhaar' | 'pan' | 'tenth-marksheet';
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 

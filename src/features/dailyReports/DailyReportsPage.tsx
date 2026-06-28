@@ -97,7 +97,7 @@ export default function DailyReportsPage() {
 function ReportCard({ report }: { report: DailyReport }) {
   return (
     <Link to={`/daily-reports/${report.id}`}>
-      <Card className="hover:border-blue-200 transition-colors active:scale-[0.99]">
+      <Card hover className="hover:border-blue-200 active:scale-[0.99]">
         <div className="flex items-start justify-between">
           <div>
             <div className="font-semibold text-slate-800">{dayjs(report.date).format('MMMM D, YYYY')}</div>

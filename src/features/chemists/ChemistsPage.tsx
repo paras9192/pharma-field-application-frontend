@@ -109,7 +109,7 @@ function ChemistCard({ chemist, dueAmount }: { chemist: Chemist; dueAmount: numb
 
   return (
     <Link to={`/chemists/${chemist.id}`}>
-      <Card className="hover:border-purple-200 transition-colors active:scale-[0.99]">
+      <Card hover className="hover:border-purple-200 active:scale-[0.99]">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
             <ShoppingBag size={18} className="text-purple-600" />

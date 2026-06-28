@@ -116,7 +116,7 @@ function UserCard({ user, onToggle, toggling, canToggle }: { user: User; onToggl
   };
 
   return (
-    <Card className="hover:border-blue-200 transition-colors">
+    <Card hover className="hover:border-blue-200">
       <div className="flex items-start gap-3">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-sm flex-shrink-0 ${user.isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
           {user.name[0].toUpperCase()}

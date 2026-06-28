@@ -73,7 +73,7 @@ export default function DoctorsPage() {
 function DoctorCard({ doctor }: { doctor: Doctor }) {
   return (
     <Link to={`/doctors/${doctor.id}`}>
-      <Card className="hover:border-blue-200 transition-colors active:scale-[0.99]">
+      <Card hover className="hover:border-blue-200 active:scale-[0.99]">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
             <Stethoscope size={18} className="text-blue-600" />
