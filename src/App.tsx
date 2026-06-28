@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProtectedRoute, AdminRoute, GuestRoute } from '@/routes/ProtectedRoute';
 import { Skeleton } from '@/components/feedback/Skeleton';
+import { InstallPrompt } from '@/components/common/InstallPrompt';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -107,6 +108,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </BrowserRouter>
+      <InstallPrompt />
       <Toaster
         position="top-center"
         toastOptions={{
