@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
+import { Avatar } from '@/components/common/Avatar';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { ListSkeleton } from '@/components/feedback/Skeleton';
@@ -118,9 +119,12 @@ function UserCard({ user, onToggle, toggling, canToggle }: { user: User; onToggl
   return (
     <Card hover className="hover:border-blue-200">
       <div className="flex items-start gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-semibold text-sm flex-shrink-0 ${user.isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
-          {user.name[0].toUpperCase()}
-        </div>
+        <Avatar
+          name={user.name}
+          src={user.profilePhoto}
+          className="w-10 h-10 rounded-xl text-sm flex-shrink-0"
+          fallbackClassName={user.isActive ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}
+        />
         <div className="flex-1 min-w-0">
           <div className="flex items-start gap-2 flex-wrap">
             <Link to={`/users/${user.id}`} className="font-semibold text-slate-800 hover:text-blue-600">{user.name}</Link>
