@@ -18,6 +18,9 @@ const setTokens = (access: string, refresh: string) => {
 const clearTokens = () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
+  // Also wipe the persisted auth store, otherwise `isAuthenticated` stays true
+  // and the route guard bounces /login -> / -> 401 -> /login in a reload loop.
+  localStorage.removeItem('pharma-auth');
 };
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -49,7 +52,14 @@ api.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
+        // Bare axios.post has NO timeout by default — without this, an
+        // unreachable server makes the refresh hang forever and the original
+        // request never settles, leaving the UI stuck on an infinite skeleton.
+        const { data } = await axios.post(
+          `${BASE_URL}/auth/refresh`,
+          { refreshToken },
+          { timeout: 10000 },
+        );
         const { accessToken, refreshToken: newRefresh } = data.data;
         setTokens(accessToken, newRefresh);
         original.headers.Authorization = `Bearer ${accessToken}`;

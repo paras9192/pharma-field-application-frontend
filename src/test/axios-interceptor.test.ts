@@ -111,16 +111,22 @@ describe('Axios 401 interceptor', () => {
       // expected: retry hits network error in test environment
     }
 
+    // Must call refresh WITH an explicit timeout — otherwise an unreachable
+    // server hangs the refresh forever and the UI gets stuck loading.
     expect(mockAxiosPost).toHaveBeenCalledWith(
       expect.stringContaining('/auth/refresh'),
-      { refreshToken: 'old-refresh' }
+      { refreshToken: 'old-refresh' },
+      expect.objectContaining({ timeout: expect.any(Number) })
     );
     expect(localStorage.getItem('accessToken')).toBe('new-access');
     expect(localStorage.getItem('refreshToken')).toBe('new-refresh');
   });
 
-  it('redirects to /login when refresh call fails', async () => {
+  it('redirects to /login and clears persisted auth store when refresh fails', async () => {
     localStorage.setItem('refreshToken', 'old-refresh');
+    // Simulate a logged-in persisted store; the guard would bounce back to /
+    // and re-loop unless this is cleared too.
+    localStorage.setItem('pharma-auth', JSON.stringify({ state: { isAuthenticated: true } }));
     mockAxiosPost.mockRejectedValueOnce(new Error('Refresh failed'));
 
     const { api } = await import('@/api/axios');
@@ -133,6 +139,8 @@ describe('Axios 401 interceptor', () => {
     expect(window.location.href).toBe('/login');
     expect(localStorage.getItem('accessToken')).toBeNull();
     expect(localStorage.getItem('refreshToken')).toBeNull();
+    // Persisted store must be wiped so the route guard does not loop.
+    expect(localStorage.getItem('pharma-auth')).toBeNull();
   });
 
   it('does NOT retry on 401 if _retry is already true (prevents infinite loop)', async () => {
