@@ -1,4 +1,6 @@
-import { api } from './axios';
+import { api, UPLOAD_TIMEOUT } from './axios';
+import { compressImage } from '@/lib/compressImage';
+import { uploadFilesToS3 } from './uploads';
 import type { ApiResponse, PaginatedResponse, User, SalesPersonChemist, CreateUserPayload, UpdateUserPayload, MyProfile, UpdateMePayload, ProfileDocumentType } from '@/types/api';
 
 export const usersApi = {
@@ -24,19 +26,17 @@ export const usersApi = {
   updateMe: (data: UpdateMePayload) =>
     api.patch<ApiResponse<MyProfile>>('/users/me', data),
 
-  uploadPhoto: (file: File) => {
-    const form = new FormData();
-    form.append('file', file);
-    return api.post<ApiResponse<MyProfile>>('/users/me/photo', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  uploadPhoto: async (file: File) => {
+    const [uploaded] = await uploadFilesToS3('profile-photos', [await compressImage(file)]);
+    return api.post<ApiResponse<MyProfile>>('/users/me/photo', { key: uploaded.key }, {
+      timeout: UPLOAD_TIMEOUT,
     });
   },
 
-  uploadDocument: (type: ProfileDocumentType, file: File) => {
-    const form = new FormData();
-    form.append('file', file);
-    return api.post<ApiResponse<MyProfile>>(`/users/me/documents/${type}`, form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  uploadDocument: async (type: ProfileDocumentType, file: File) => {
+    const [uploaded] = await uploadFilesToS3('employee-documents', [await compressImage(file)]);
+    return api.post<ApiResponse<MyProfile>>(`/users/me/documents/${type}`, { key: uploaded.key }, {
+      timeout: UPLOAD_TIMEOUT,
     });
   },
 

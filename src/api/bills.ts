@@ -1,4 +1,6 @@
-import { api } from './axios';
+import { api, UPLOAD_TIMEOUT } from './axios';
+import { compressImages } from '@/lib/compressImage';
+import { uploadFilesToS3 } from './uploads';
 import type { ApiResponse, PaginatedResponse, Bill, BillStatus, Settlement, SettlementType } from '@/types/api';
 
 export const billsApi = {
@@ -23,11 +25,11 @@ export const billsApi = {
 
   get: (id: string) => api.get<ApiResponse<Bill>>(`/bills/${id}`),
 
-  uploadImages: (id: string, files: File[]) => {
-    const form = new FormData();
-    files.forEach(f => form.append('files', f));
-    return api.post<ApiResponse<Bill>>(`/bills/${id}/upload`, form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  uploadImages: async (id: string, files: File[]) => {
+    const compressed = await compressImages(files);
+    const uploaded = await uploadFilesToS3('bills', compressed);
+    return api.post<ApiResponse<Bill>>(`/bills/${id}/upload`, { files: uploaded }, {
+      timeout: UPLOAD_TIMEOUT,
     });
   },
 

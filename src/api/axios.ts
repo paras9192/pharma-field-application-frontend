@@ -9,6 +9,10 @@ export const api = axios.create({
   timeout: 10000,
 });
 
+// File uploads need far longer than the default 10s — a multi-MB photo on a
+// mobile data connection can take 30s+. Matches the backend's 60s upload window.
+export const UPLOAD_TIMEOUT = 60000;
+
 const getAccessToken = () => localStorage.getItem('accessToken');
 const getRefreshToken = () => localStorage.getItem('refreshToken');
 const setTokens = (access: string, refresh: string) => {

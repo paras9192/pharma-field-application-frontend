@@ -179,9 +179,14 @@ export default function BillDetailPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
-    if (!files.length) return;
-    uploadMutation.mutate(files);
     e.target.value = '';
+    if (!files.length) return;
+    // The accept attribute is only a picker hint — enforce images here too.
+    if (files.some(f => !f.type.startsWith('image/'))) {
+      toast.error('Only images can be uploaded for bills');
+      return;
+    }
+    uploadMutation.mutate(files);
   };
 
   if (query.isLoading) return <ListSkeleton />;
@@ -244,7 +249,7 @@ export default function BillDetailPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp,application/pdf"
+                accept="image/jpeg,image/png,image/webp"
                 capture="environment"
                 multiple
                 className="hidden"

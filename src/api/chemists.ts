@@ -1,4 +1,6 @@
-import { api } from './axios';
+import { api, UPLOAD_TIMEOUT } from './axios';
+import { compressImages } from '@/lib/compressImage';
+import { uploadFilesToS3 } from './uploads';
 import type { ApiResponse, PaginatedResponse, Chemist, CreateChemistPayload } from '@/types/api';
 
 export const chemistsApi = {
@@ -17,11 +19,11 @@ export const chemistsApi = {
   delete: (id: string) =>
     api.delete<ApiResponse<Chemist>>(`/chemists/${id}`),
 
-  uploadImages: (id: string, files: File[]) => {
-    const form = new FormData();
-    files.forEach(f => form.append('files', f));
-    return api.post<ApiResponse<Chemist>>(`/chemists/${id}/images`, form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  uploadImages: async (id: string, files: File[]) => {
+    const compressed = await compressImages(files);
+    const uploaded = await uploadFilesToS3('chemists', compressed);
+    return api.post<ApiResponse<Chemist>>(`/chemists/${id}/images`, { files: uploaded }, {
+      timeout: UPLOAD_TIMEOUT,
     });
   },
 

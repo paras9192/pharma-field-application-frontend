@@ -1,4 +1,6 @@
-import { api } from './axios';
+import { api, UPLOAD_TIMEOUT } from './axios';
+import { compressImages } from '@/lib/compressImage';
+import { uploadFilesToS3 } from './uploads';
 import type { ApiResponse, PaginatedResponse, Visit, CreateVisitPayload, VisitStatus } from '@/types/api';
 
 export const visitsApi = {
@@ -29,11 +31,11 @@ export const visitsApi = {
   markFollowUpDone: (id: string) =>
     api.patch<ApiResponse<Visit>>(`/visits/${id}/follow-up-done`),
 
-  uploadImages: (id: string, files: File[]) => {
-    const form = new FormData();
-    files.forEach(f => form.append('files', f));
-    return api.post<ApiResponse<Visit>>(`/visits/${id}/images`, form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  uploadImages: async (id: string, files: File[]) => {
+    const compressed = await compressImages(files);
+    const uploaded = await uploadFilesToS3('visits', compressed);
+    return api.post<ApiResponse<Visit>>(`/visits/${id}/images`, { files: uploaded }, {
+      timeout: UPLOAD_TIMEOUT,
     });
   },
 
