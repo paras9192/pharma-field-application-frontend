@@ -35,7 +35,7 @@ export interface PaginationParams {
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MR' | 'SALES_PERSON';
+export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'ZSM' | 'ASM' | 'MR' | 'SALES_PERSON';
 export type Gender = 'MALE' | 'FEMALE' | 'OTHER';
 export type VisitType = 'DOCTOR' | 'CHEMIST';
 export type VisitStatus = 'COMPLETED' | 'CANCELLED' | 'PENDING';
@@ -122,6 +122,8 @@ export interface User {
   updatedAt: string;
   role: { id: number; name: Role };
   createdBy: { id: string; name: string } | null;
+  managerId: string | null;
+  manager: { id: string; name: string; role: { name: Role } } | null;
 }
 
 export interface CreateUserPayload {
@@ -132,8 +134,10 @@ export interface CreateUserPayload {
   role: Role;
   employeeCode?: string;
   dateOfJoining?: string;
+  managerId?: string;
 }
 
+// `managerId: null` clears the manager; omitting the key leaves it unchanged.
 export interface UpdateUserPayload {
   name?: string;
   phone?: string;
@@ -141,6 +145,8 @@ export interface UpdateUserPayload {
   profilePhoto?: string;
   dateOfJoining?: string;
   isActive?: boolean;
+  role?: Role;
+  managerId?: string | null;
 }
 
 // ─── Territory ────────────────────────────────────────────────────────────────

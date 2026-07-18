@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send } from 'lucide-react';
+import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send, Network } from 'lucide-react';
 import { usersApi } from '@/api/users';
 import { chemistsApi } from '@/api/chemists';
 import { useAuthStore } from '@/store/authStore';
@@ -16,9 +16,12 @@ import { ErrorMessage } from '@/components/feedback/ErrorMessage';
 import toast from 'react-hot-toast';
 import { type AxiosError } from 'axios';
 import dayjs from 'dayjs';
+import { ROLE_BADGE_VARIANTS, ROLE_SHORT_LABELS } from '@/utils/roles';
 import type { Role, Chemist } from '@/types/api';
 
-const FIELD_ROLES: Role[] = ['SALES_PERSON'];
+// Chemist assignment is a sales-person concern, not a field-user one — this is
+// deliberately narrower than the field roles in @/utils/roles.
+const CHEMIST_ASSIGNABLE_ROLES: Role[] = ['SALES_PERSON'];
 
 export default function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,7 +48,7 @@ export default function UserDetailPage() {
     queryKey: ['user-assigned-chemists', id],
     queryFn: () => usersApi.getAssignedChemists(id!),
     select: r => r.data.data,
-    enabled: !!id && FIELD_ROLES.includes(query.data?.role?.name as Role),
+    enabled: !!id && CHEMIST_ASSIGNABLE_ROLES.includes(query.data?.role?.name as Role),
   });
 
   const sendResetLinkMutation = useMutation({
@@ -73,14 +76,7 @@ export default function UserDetailPage() {
   const user = query.data;
   if (!user) return null;
 
-  const isFieldUser = FIELD_ROLES.includes(user.role.name as Role);
-
-  const roleColors: Record<Role, string> = {
-    SUPER_ADMIN: 'purple',
-    ADMIN: 'info',
-    MR: 'success',
-    SALES_PERSON: 'warning',
-  };
+  const isFieldUser = CHEMIST_ASSIGNABLE_ROLES.includes(user.role.name as Role);
 
   return (
     <div className="p-4 space-y-4 max-w-2xl mx-auto">
@@ -97,8 +93,8 @@ export default function UserDetailPage() {
               <h2 className="text-xl font-bold text-slate-800">{user.name}</h2>
               {!user.isActive && <Badge variant="danger">Inactive</Badge>}
             </div>
-            <Badge variant={roleColors[user.role.name] as 'purple' | 'info' | 'success' | 'warning'} size="md">
-              {user.role.name.replace('_', ' ')}
+            <Badge variant={ROLE_BADGE_VARIANTS[user.role.name]} size="md">
+              {ROLE_SHORT_LABELS[user.role.name]}
             </Badge>
           </div>
         </div>
@@ -131,6 +127,13 @@ export default function UserDetailPage() {
           <InfoRow icon={<Phone size={14} />} label="Phone" value={user.phone} />
           {user.employeeCode && <InfoRow icon={<span className="text-xs font-bold">#</span>} label="Employee Code" value={user.employeeCode} />}
           {user.dateOfJoining && <InfoRow icon={<Calendar size={14} />} label="Joined" value={dayjs(user.dateOfJoining).format('MMMM D, YYYY')} />}
+          {user.manager && (
+            <InfoRow
+              icon={<Network size={14} />}
+              label="Reports To"
+              value={`${user.manager.name} · ${ROLE_SHORT_LABELS[user.manager.role.name]}`}
+            />
+          )}
         </div>
       </Card>
 

@@ -79,7 +79,11 @@ export default function DashboardPage() {
     );
   }
 
-  if (role === 'MR') {
+  // ASM and ZSM are field users first — they log their own visits and attendance
+  // exactly like an MR, and rank only adds downward visibility. The dashboard
+  // endpoints aren't team-scoped yet, so they see their own activity here; their
+  // team lives on /my-team.
+  if (role === 'MR' || role === 'ASM' || role === 'ZSM') {
     return (
       <div className="p-4 space-y-5 max-w-2xl mx-auto lg:max-w-4xl">
         {greeting}

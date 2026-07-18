@@ -13,6 +13,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { authApi } from '@/api/auth';
 import { usersApi } from '@/api/users';
 import { useMyProfile, ME_QUERY_KEY, PROFILE_FIELD_LABELS } from '@/hooks/useMyProfile';
+import { ROLE_BADGE_VARIANTS, ROLE_SHORT_LABELS } from '@/utils/roles';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -61,10 +62,6 @@ const KYC_DOCS: { type: ProfileDocumentType; label: string; field: keyof MyProfi
   { type: 'pan', label: 'PAN', field: 'panUrl' },
   { type: 'tenth-marksheet', label: '10th Marksheet', field: 'tenthMarksheetUrl' },
 ];
-
-const roleColors: Record<string, string> = {
-  SUPER_ADMIN: 'purple', ADMIN: 'info', MR: 'success', SALES_PERSON: 'warning',
-};
 
 function apiErr(err: unknown, fallback: string) {
   return (err as AxiosError<{ error: { message: string } }>).response?.data?.error?.message || fallback;
@@ -195,8 +192,8 @@ export default function SettingsPage() {
             <div className="text-lg font-bold text-slate-800 truncate">{profile?.name ?? storeUser?.name}</div>
             <div className="text-sm text-slate-500 truncate">{profile?.email ?? storeUser?.email}</div>
             {role && (
-              <Badge variant={roleColors[role] as 'purple' | 'info' | 'success' | 'warning'} className="mt-1">
-                {role.replace('_', ' ')}
+              <Badge variant={ROLE_BADGE_VARIANTS[role]} className="mt-1">
+                {ROLE_SHORT_LABELS[role]}
               </Badge>
             )}
           </div>

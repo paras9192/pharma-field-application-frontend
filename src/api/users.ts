@@ -13,6 +13,12 @@ export const usersApi = {
   get: (id: string) =>
     api.get<ApiResponse<User>>(`/users/${id}`),
 
+  // ASM/ZSM only — the one user-listing endpoint they can reach. Returns a plain
+  // array (no pagination wrapper): direct reports for an ASM, ASMs plus their
+  // reports for a ZSM. The caller is never in their own team.
+  myTeam: () =>
+    api.get<ApiResponse<User[]>>('/users/me/team'),
+
   update: (id: string, data: UpdateUserPayload) =>
     api.patch<ApiResponse<User>>(`/users/${id}`, data),
 

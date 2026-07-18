@@ -13,7 +13,8 @@ import { Select } from '@/components/common/Select';
 import { ListSkeleton } from '@/components/feedback/Skeleton';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorMessage } from '@/components/feedback/ErrorMessage';
-import type { User, Role } from '@/types/api';
+import { ROLE_BADGE_VARIANTS, ROLE_FILTER_OPTIONS, ROLE_SHORT_LABELS } from '@/utils/roles';
+import type { User } from '@/types/api';
 import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
@@ -61,12 +62,7 @@ export default function UsersPage() {
       />
 
       <Select
-        options={[
-          { value: 'SUPER_ADMIN', label: 'Super Admin' },
-          { value: 'ADMIN', label: 'Admin' },
-          { value: 'MR', label: 'MR' },
-          { value: 'SALES_PERSON', label: 'Sales Person' },
-        ]}
+        options={ROLE_FILTER_OPTIONS}
         placeholder="All roles"
         value={roleFilter}
         onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
@@ -109,13 +105,6 @@ export default function UsersPage() {
 }
 
 function UserCard({ user, onToggle, toggling, canToggle }: { user: User; onToggle: () => void; toggling: boolean; canToggle: boolean }) {
-  const roleColors: Record<Role, string> = {
-    SUPER_ADMIN: 'purple',
-    ADMIN: 'info',
-    MR: 'success',
-    SALES_PERSON: 'warning',
-  };
-
   return (
     <Card hover className="hover:border-blue-200">
       <div className="flex items-start gap-3">
@@ -128,12 +117,17 @@ function UserCard({ user, onToggle, toggling, canToggle }: { user: User; onToggl
         <div className="flex-1 min-w-0">
           <div className="flex items-start gap-2 flex-wrap">
             <Link to={`/users/${user.id}`} className="font-semibold text-slate-800 hover:text-blue-600">{user.name}</Link>
-            <Badge variant={roleColors[user.role.name] as 'purple' | 'info' | 'success' | 'warning'}>
-              {user.role.name.replace('_', ' ')}
+            <Badge variant={ROLE_BADGE_VARIANTS[user.role.name]}>
+              {ROLE_SHORT_LABELS[user.role.name]}
             </Badge>
             {!user.isActive && <Badge variant="danger">Inactive</Badge>}
           </div>
           <div className="text-sm text-slate-500">{user.email}</div>
+          {user.manager && (
+            <div className="text-xs text-slate-400 mt-0.5">
+              Reports to {user.manager.name} · {ROLE_SHORT_LABELS[user.manager.role.name]}
+            </div>
+          )}
           <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
             {user.employeeCode && <span>{user.employeeCode}</span>}
             {user.phone && <span>{user.phone}</span>}
