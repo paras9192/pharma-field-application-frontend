@@ -4,6 +4,7 @@ import { MapPin, Clock, LogIn, LogOut, CalendarDays } from 'lucide-react';
 import { attendanceApi } from '@/api/attendance';
 import { useAuthStore } from '@/store/authStore';
 import { Card } from '@/components/common/Card';
+import { Input } from '@/components/common/Input';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { ListSkeleton } from '@/components/feedback/Skeleton';
@@ -13,9 +14,25 @@ import dayjs from 'dayjs';
 import type { Attendance, AttendanceStatus } from '@/types/api';
 import { type AxiosError } from 'axios';
 
+// History defaults to the current month; admins get every user's records over
+// the same range, everyone else is pinned to their own by the API.
+const startOfMonth = () => dayjs().startOf('month').format('YYYY-MM-DD');
+const todayStr = () => dayjs().format('YYYY-MM-DD');
+
+const RANGE_PRESETS: { label: string; range: () => [string, string] }[] = [
+  { label: 'This month', range: () => [startOfMonth(), todayStr()] },
+  { label: 'Last 30 days', range: () => [dayjs().subtract(29, 'day').format('YYYY-MM-DD'), todayStr()] },
+  { label: 'Last month', range: () => {
+    const m = dayjs().subtract(1, 'month');
+    return [m.startOf('month').format('YYYY-MM-DD'), m.endOf('month').format('YYYY-MM-DD')];
+  } },
+];
+
 export default function AttendancePage() {
   const isAdmin = useAuthStore(s => s.isAdmin());
-  const [tab, setTab] = useState<'today' | 'history'>(isAdmin ? 'history' : 'today');
+  const [tab, setTab] = useState<'today' | 'history'>('today');
+  const [from, setFrom] = useState(startOfMonth);
+  const [to, setTo] = useState(todayStr);
   const [gettingLocation, setGettingLocation] = useState(false);
   const qc = useQueryClient();
 
@@ -23,20 +40,15 @@ export default function AttendancePage() {
     queryKey: ['attendance', 'today'],
     queryFn: () => attendanceApi.today(),
     select: r => r.data.data,
-    enabled: !isAdmin,
   });
 
+  // One endpoint for every role: /attendance/list returns the whole company for
+  // Admin/Super Admin and just the caller's own records for everyone else.
   const historyQuery = useQuery({
-    queryKey: ['attendance', 'history'],
-    queryFn: () => attendanceApi.my({ limit: 30 }),
+    queryKey: ['attendance', 'history', from, to],
+    queryFn: () => attendanceApi.list({ from, to, limit: 100 }),
     select: r => r.data,
-  });
-
-  const adminListQuery = useQuery({
-    queryKey: ['attendance', 'list'],
-    queryFn: () => attendanceApi.dailyPresent(),
-    select: r => r.data.data,
-    enabled: isAdmin,
+    enabled: tab === 'history',
   });
 
   const checkInMutation = useMutation({
@@ -118,22 +130,20 @@ export default function AttendancePage() {
       </div>
 
       {/* Tabs */}
-      {!isAdmin && (
-        <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
-          {(['today', 'history'] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all capitalize ${tab === t ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'}`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="flex bg-slate-100 rounded-xl p-1 gap-1">
+        {(['today', 'history'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all capitalize ${tab === t ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500'}`}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
 
       {/* Today Tab */}
-      {!isAdmin && tab === 'today' && (
+      {tab === 'today' && (
         <div className="space-y-4">
           {todayQuery.isLoading ? (
             <ListSkeleton count={1} />
@@ -169,9 +179,10 @@ export default function AttendancePage() {
                           Working hours: <strong>{today.workingHours}h</strong>
                         </div>
                       )}
-                      {today.checkInAddress && (
-                        <div className="text-xs text-slate-400 flex items-center justify-center gap-1">
-                          <MapPin size={12} /> {today.checkInAddress}
+                      {(today.checkInAddress || today.checkOutAddress) && (
+                        <div className="space-y-1 text-left">
+                          <LocationLine label="In" address={today.checkInAddress} />
+                          <LocationLine label="Out" address={today.checkOutAddress} />
                         </div>
                       )}
                     </div>
@@ -205,25 +216,51 @@ export default function AttendancePage() {
         </div>
       )}
 
-      {/* History / Admin view */}
-      {(isAdmin || tab === 'history') && (
+      {/* History — date-wise, all users for admins, own records for everyone else */}
+      {tab === 'history' && (
         <div className="space-y-3">
-          {isAdmin ? (
-            adminListQuery.isLoading ? (
-              <ListSkeleton />
-            ) : !adminListQuery.data?.length ? (
-              <EmptyState icon={<CalendarDays size={40} />} title="No one present today" />
-            ) : (
-              adminListQuery.data.map(att => <AttendanceCard key={att.id} att={att} showUser />)
-            )
+          <Card padding="sm">
+            <div className="flex gap-3">
+              <Input
+                label="From"
+                type="date"
+                value={from}
+                max={to}
+                onChange={e => setFrom(e.target.value)}
+              />
+              <Input
+                label="To"
+                type="date"
+                value={to}
+                min={from}
+                max={todayStr()}
+                onChange={e => setTo(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 mt-3">
+              {RANGE_PRESETS.map(p => (
+                <button
+                  key={p.label}
+                  onClick={() => { const [f, t] = p.range(); setFrom(f); setTo(t); }}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+            {isAdmin && (
+              <p className="text-xs text-slate-400 mt-3">Showing every employee's records for this range.</p>
+            )}
+          </Card>
+
+          {historyQuery.isLoading ? (
+            <ListSkeleton />
+          ) : !historyQuery.data?.data?.length ? (
+            <EmptyState icon={<CalendarDays size={40} />} title="No attendance records in this range" />
           ) : (
-            historyQuery.isLoading ? (
-              <ListSkeleton />
-            ) : !historyQuery.data?.data?.length ? (
-              <EmptyState icon={<CalendarDays size={40} />} title="No attendance records" />
-            ) : (
-              historyQuery.data.data.map(att => <AttendanceCard key={att.id} att={att} />)
-            )
+            historyQuery.data.data.map(att => (
+              <AttendanceCard key={att.id} att={att} showUser={isAdmin} />
+            ))
           )}
         </div>
       )}
@@ -234,8 +271,8 @@ export default function AttendancePage() {
 function AttendanceCard({ att, showUser }: { att: Attendance; showUser?: boolean }) {
   return (
     <Card padding="sm">
-      <div className="flex items-start justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           {showUser && (
             <div className="font-medium text-slate-800">{att.user.name}</div>
           )}
@@ -245,10 +282,33 @@ function AttendanceCard({ att, showUser }: { att: Attendance; showUser?: boolean
             <span className="flex items-center gap-1"><LogOut size={12} className="text-red-400" /> {att.checkOutTime ? dayjs(att.checkOutTime).format('h:mm A') : '—'}</span>
             {att.workingHours && <span className="flex items-center gap-1"><Clock size={12} /> {att.workingHours}h</span>}
           </div>
+          {(att.checkInAddress || att.checkOutAddress) && (
+            <div className="mt-2 space-y-1">
+              <LocationLine label="In" address={att.checkInAddress} />
+              <LocationLine label="Out" address={att.checkOutAddress} />
+            </div>
+          )}
         </div>
         <AttendanceStatusBadge status={att.status} />
       </div>
     </Card>
+  );
+}
+
+/**
+ * Where a check-in or check-out happened. The API only ever returns the
+ * reverse-geocoded address — raw lat/lng are stripped from every response
+ * server-side — so there is nothing to fall back to when it's missing.
+ */
+function LocationLine({ label, address }: { label: 'In' | 'Out'; address: string | null }) {
+  if (!address) return null;
+  return (
+    <div className="flex items-start gap-1.5 text-xs text-slate-400">
+      <MapPin size={12} className="mt-0.5 shrink-0" />
+      <span className="min-w-0">
+        <span className="font-medium text-slate-500">{label}:</span> {address}
+      </span>
+    </div>
   );
 }
 
