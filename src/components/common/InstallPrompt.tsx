@@ -1,11 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Download, X, Share } from 'lucide-react';
 import srlLogo from '@/assets/logo.png';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
+import { useInstallPrompt } from '@/pwa/useInstallPrompt';
 
 const DISMISS_KEY = 'pwa-install-dismissed-at';
 const DISMISS_DAYS = 7;
@@ -13,68 +9,31 @@ const DISMISS_DAYS = 7;
 function recentlyDismissed(): boolean {
   const at = localStorage.getItem(DISMISS_KEY);
   if (!at) return false;
-  const ageMs = Date.now() - Number(at);
-  return ageMs < DISMISS_DAYS * 24 * 60 * 60 * 1000;
+  return Date.now() - Number(at) < DISMISS_DAYS * 24 * 60 * 60 * 1000;
 }
 
-function isStandalone(): boolean {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    // iOS Safari
-    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
-  );
-}
-
-function isIOS(): boolean {
-  return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-}
-
+/**
+ * Floating install banner. Dismissing it hides the banner for a week, but never
+ * hides the permanent "Install app" row in Settings — that stays the reliable
+ * way in for anyone who dismissed this or is on a browser that never offers it.
+ */
 export function InstallPrompt() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showIOS, setShowIOS] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    if (isStandalone() || recentlyDismissed()) return;
-
-    // Chrome / Edge / Android: capture the browser's install event so we can
-    // trigger it from our own button instead of relying on the (mostly hidden)
-    // native UI.
-    const onBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener('beforeinstallprompt', onBeforeInstall);
-
-    // iOS Safari never fires beforeinstallprompt — show manual instructions.
-    if (isIOS()) setShowIOS(true);
-
-    const onInstalled = () => {
-      setDeferred(null);
-      setShowIOS(false);
-    };
-    window.addEventListener('appinstalled', onInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
-      window.removeEventListener('appinstalled', onInstalled);
-    };
-  }, []);
+  const { canInstall, needsIOSInstructions, install } = useInstallPrompt();
+  // Read once on mount: re-reading every render would let the banner reappear
+  // mid-session after the dismissal is written.
+  const [snoozed, setSnoozed] = useState(recentlyDismissed);
 
   const handleInstall = async () => {
-    if (!deferred) return;
-    await deferred.prompt();
-    await deferred.userChoice;
-    setDeferred(null);
+    await install();
   };
 
   const handleDismiss = () => {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    setDismissed(true);
+    setSnoozed(true);
   };
 
-  if (dismissed) return null;
-  if (!deferred && !showIOS) return null;
+  if (snoozed) return null;
+  if (!canInstall && !needsIOSInstructions) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-24 lg:bottom-6 z-50 px-4 flex justify-center pointer-events-none">
@@ -83,7 +42,7 @@ export function InstallPrompt() {
 
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-slate-800 text-sm">Install SRL PULSE</div>
-          {showIOS ? (
+          {needsIOSInstructions ? (
             <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1 flex-wrap">
               Tap <Share size={13} className="inline text-blue-500" /> then "Add to Home Screen"
             </p>
@@ -92,7 +51,7 @@ export function InstallPrompt() {
           )}
         </div>
 
-        {!showIOS && (
+        {canInstall && (
           <button
             onClick={handleInstall}
             className="flex-shrink-0 inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3.5 py-2 rounded-xl transition-colors"

@@ -6,8 +6,9 @@ import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   LogOut, Lock, Shield, Phone, MapPin, Calendar, User as UserIcon,
-  CheckCircle2, Circle, FileText, Upload, ExternalLink,
+  CheckCircle2, Circle, FileText, Upload, ExternalLink, Download, Share, Smartphone,
 } from 'lucide-react';
+import { useInstallPrompt } from '@/pwa/useInstallPrompt';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
 import { authApi } from '@/api/auth';
@@ -308,6 +309,9 @@ export default function SettingsPage() {
         )}
       </Card>
 
+      {/* Install app */}
+      <InstallAppCard />
+
       {/* Account */}
       <Card>
         <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
@@ -367,5 +371,49 @@ function DocumentRow({ label, url, uploading, disabled, onPick }: DocumentRowPro
         {!uploading && <Upload size={14} />} {uploaded ? 'Replace' : 'Upload'}
       </Button>
     </div>
+  );
+}
+
+/**
+ * Permanent way to install the app. The floating banner can be dismissed (and
+ * stays hidden for a week) or may never appear at all if the browser has not
+ * offered an install yet, so this row is the dependable entry point. It renders
+ * nothing once the app is already installed.
+ */
+function InstallAppCard() {
+  const { canInstall, needsIOSInstructions, installed, install } = useInstallPrompt();
+
+  if (installed) return null;
+
+  return (
+    <Card>
+      <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+        <Smartphone size={15} /> Install App
+      </h3>
+
+      {needsIOSInstructions ? (
+        <p className="text-sm text-slate-500 flex items-center gap-1 flex-wrap">
+          Tap <Share size={14} className="inline text-blue-500" /> in Safari, then
+          <strong className="text-slate-700">Add to Home Screen</strong>.
+        </p>
+      ) : canInstall ? (
+        <>
+          <p className="text-sm text-slate-500 mb-3">
+            Install SRL PULSE on this device for quick access and a full-screen app.
+          </p>
+          <Button fullWidth onClick={() => { void install(); }}>
+            <Download size={15} /> Install App
+          </Button>
+        </>
+      ) : (
+        // Chrome only offers an install once its own criteria are met (served
+        // over HTTPS, service worker active, and some engagement with the site).
+        // Saying so beats showing a button that silently does nothing.
+        <p className="text-sm text-slate-500">
+          Your browser hasn't offered an install yet. Keep using the app for a moment and
+          check back, or use your browser menu's <strong className="text-slate-700">Install app</strong> option.
+        </p>
+      )}
+    </Card>
   );
 }
