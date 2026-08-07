@@ -122,8 +122,6 @@ export interface User {
   updatedAt: string;
   role: { id: number; name: Role };
   createdBy: { id: string; name: string } | null;
-  managerId: string | null;
-  manager: { id: string; name: string; role: { name: Role } } | null;
 }
 
 export interface CreateUserPayload {
@@ -134,10 +132,8 @@ export interface CreateUserPayload {
   role: Role;
   employeeCode?: string;
   dateOfJoining?: string;
-  managerId?: string;
 }
 
-// `managerId: null` clears the manager; omitting the key leaves it unchanged.
 export interface UpdateUserPayload {
   name?: string;
   phone?: string;
@@ -146,7 +142,6 @@ export interface UpdateUserPayload {
   dateOfJoining?: string;
   isActive?: boolean;
   role?: Role;
-  managerId?: string | null;
 }
 
 // ─── Territory ────────────────────────────────────────────────────────────────

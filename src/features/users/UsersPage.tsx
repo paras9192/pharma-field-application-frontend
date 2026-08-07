@@ -123,11 +123,6 @@ function UserCard({ user, onToggle, toggling, canToggle }: { user: User; onToggl
             {!user.isActive && <Badge variant="danger">Inactive</Badge>}
           </div>
           <div className="text-sm text-slate-500">{user.email}</div>
-          {user.manager && (
-            <div className="text-xs text-slate-400 mt-0.5">
-              Reports to {user.manager.name} · {ROLE_SHORT_LABELS[user.manager.role.name]}
-            </div>
-          )}
           <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
             {user.employeeCode && <span>{user.employeeCode}</span>}
             {user.phone && <span>{user.phone}</span>}

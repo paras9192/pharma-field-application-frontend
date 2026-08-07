@@ -44,8 +44,7 @@ export function BottomNav() {
           { to: '/chemists', icon: Pill,            label: 'Chemists' },
           { to: '/visits',   icon: ClipboardList,   label: 'Visits'   },
         ];
-      // ASM/ZSM keep every field ability an MR has — their team is one tap away in
-      // "More", it does not replace the field screens.
+      // ASM/ZSM get exactly the MR screens — rank carries no extra access.
       case 'MR':
       case 'ASM':
       case 'ZSM':
@@ -88,17 +87,9 @@ export function BottomNav() {
           { to: '/settings',          icon: Settings,       label: 'Settings'    },
         ];
       case 'MR':
-        return [
-          { to: '/daily-reports', icon: FileText,    label: 'Reports'    },
-          { to: '/attendance',    icon: UserCheck,   label: 'Attendance' },
-          { to: '/bills',         icon: Receipt,     label: 'Bills'      },
-          { to: '/payments',      icon: IndianRupee, label: 'Payments'   },
-          { to: '/settings',      icon: Settings,    label: 'Settings'   },
-        ];
       case 'ASM':
       case 'ZSM':
         return [
-          { to: '/my-team',       icon: Users,       label: 'My Team'    },
           { to: '/daily-reports', icon: FileText,    label: 'Reports'    },
           { to: '/attendance',    icon: UserCheck,   label: 'Attendance' },
           { to: '/bills',         icon: Receipt,     label: 'Bills'      },

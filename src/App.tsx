@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ProtectedRoute, AdminRoute, TeamRoute, GuestRoute } from '@/routes/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, GuestRoute } from '@/routes/ProtectedRoute';
 import { Skeleton } from '@/components/feedback/Skeleton';
 import { InstallPrompt } from '@/components/common/InstallPrompt';
 
@@ -42,7 +42,6 @@ const DailyReportNewPage = lazy(() => import('@/features/dailyReports/DailyRepor
 const UsersPage = lazy(() => import('@/features/users/UsersPage'));
 const UserDetailPage = lazy(() => import('@/features/users/UserDetailPage'));
 const UserFormPage = lazy(() => import('@/features/users/UserFormPage'));
-const MyTeamPage = lazy(() => import('@/features/users/MyTeamPage'));
 const TerritoriesPage = lazy(() => import('@/features/territories/TerritoriesPage'));
 const SettingsPage = lazy(() => import('@/features/auth/SettingsPage'));
 // const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'));
@@ -94,10 +93,6 @@ export default function App() {
                 <Route path="/bills/:id" element={<BillDetailPage />} />
                 <Route path="/payments" element={<PaymentsPage />} />
                 <Route path="/dashboard/payments" element={<PaymentsDashboardPage />} />
-
-                <Route element={<TeamRoute />}>
-                  <Route path="/my-team" element={<MyTeamPage />} />
-                </Route>
 
                 <Route element={<AdminRoute />}>
                   <Route path="/users" element={<UsersPage />} />

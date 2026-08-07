@@ -39,37 +39,11 @@ export const ROLE_OPTIONS = ROLES.map(r => ({ value: r, label: ROLE_LABELS[r] })
 export const ROLE_FILTER_OPTIONS = ROLES.map(r => ({ value: r, label: ROLE_SHORT_LABELS[r] }));
 
 /**
- * ASM and ZSM are field users who happen to have people under them: they log
- * their own visits, orders and attendance exactly like an MR. Rank only adds
- * downward visibility, so this must stay true for them.
+ * ASM and ZSM are field users: they log their own visits, orders and attendance
+ * exactly like an MR. Rank is currently a label only — the reporting line that
+ * once gave them downward visibility was removed to stabilise the product for
+ * production, so no role sees another user's records.
  */
 export function isFieldRole(role: Role | undefined): boolean {
   return role === 'MR' || role === 'SALES_PERSON' || role === 'ASM' || role === 'ZSM';
-}
-
-/** Roles that can have direct reports, and so can reach GET /users/me/team. */
-export function isManagerRole(role: Role | undefined): boolean {
-  return role === 'ASM' || role === 'ZSM';
-}
-
-/**
- * Which roles may be a manager for `role`, mirroring the backend's validation so
- * the form doesn't offer choices that would 400. The chain is
- * MR / Sales Person → ASM → ZSM; ZSM and the admin roles sit at the top and
- * cannot have a manager at all.
- */
-export function managerRolesFor(role: Role): Role[] {
-  switch (role) {
-    case 'MR':
-    case 'SALES_PERSON':
-      return ['ZSM', 'ASM'];
-    case 'ASM':
-      return ['ZSM'];
-    default:
-      return [];
-  }
-}
-
-export function canHaveManager(role: Role): boolean {
-  return managerRolesFor(role).length > 0;
 }

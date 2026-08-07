@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send, Network } from 'lucide-react';
+import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send } from 'lucide-react';
 import { usersApi } from '@/api/users';
 import { chemistsApi } from '@/api/chemists';
 import { useAuthStore } from '@/store/authStore';
@@ -127,13 +127,6 @@ export default function UserDetailPage() {
           <InfoRow icon={<Phone size={14} />} label="Phone" value={user.phone} />
           {user.employeeCode && <InfoRow icon={<span className="text-xs font-bold">#</span>} label="Employee Code" value={user.employeeCode} />}
           {user.dateOfJoining && <InfoRow icon={<Calendar size={14} />} label="Joined" value={dayjs(user.dateOfJoining).format('MMMM D, YYYY')} />}
-          {user.manager && (
-            <InfoRow
-              icon={<Network size={14} />}
-              label="Reports To"
-              value={`${user.manager.name} · ${ROLE_SHORT_LABELS[user.manager.role.name]}`}
-            />
-          )}
         </div>
       </Card>
 

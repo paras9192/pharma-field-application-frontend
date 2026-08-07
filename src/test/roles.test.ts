@@ -5,9 +5,6 @@ import {
   ROLE_SHORT_LABELS,
   ROLE_BADGE_VARIANTS,
   isFieldRole,
-  isManagerRole,
-  managerRolesFor,
-  canHaveManager,
 } from '@/utils/roles';
 import type { Role } from '@/types/api';
 
@@ -36,46 +33,5 @@ describe('isFieldRole', () => {
 
   it('handles an unknown role', () => {
     expect(isFieldRole(undefined)).toBe(false);
-  });
-});
-
-describe('isManagerRole', () => {
-  it.each(['ASM', 'ZSM'] as Role[])('%s can have direct reports', (role) => {
-    expect(isManagerRole(role)).toBe(true);
-  });
-
-  it.each(['SUPER_ADMIN', 'ADMIN', 'MR', 'SALES_PERSON'] as Role[])('%s cannot', (role) => {
-    expect(isManagerRole(role)).toBe(false);
-  });
-});
-
-// These mirror the backend's validation exactly. If they drift, the user form
-// starts offering pairings that 400.
-describe('managerRolesFor', () => {
-  it.each(['MR', 'SALES_PERSON'] as Role[])('%s may report to an ASM or a ZSM', (role) => {
-    expect(managerRolesFor(role).sort()).toEqual(['ASM', 'ZSM']);
-  });
-
-  it('ASM may report only to a ZSM', () => {
-    expect(managerRolesFor('ASM')).toEqual(['ZSM']);
-  });
-
-  it.each(['ZSM', 'ADMIN', 'SUPER_ADMIN'] as Role[])('%s cannot have a manager at all', (role) => {
-    expect(managerRolesFor(role)).toEqual([]);
-    expect(canHaveManager(role)).toBe(false);
-  });
-
-  it('never lets a role report to itself', () => {
-    for (const role of ROLES) {
-      expect(managerRolesFor(role)).not.toContain(role);
-    }
-  });
-
-  it('only ever nominates manager roles as managers', () => {
-    for (const role of ROLES) {
-      for (const manager of managerRolesFor(role)) {
-        expect(isManagerRole(manager)).toBe(true);
-      }
-    }
   });
 });

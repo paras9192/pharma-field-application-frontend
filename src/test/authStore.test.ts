@@ -100,20 +100,3 @@ describe('isField', () => {
     expect(useAuthStore.getState().isField()).toBe(false);
   });
 });
-
-describe('isManager', () => {
-  it.each(['ASM', 'ZSM'] as Role[])('returns true for %s', (role) => {
-    useAuthStore.setState({ user: makeUser(role) });
-    expect(useAuthStore.getState().isManager()).toBe(true);
-  });
-
-  // Admins have no direct reports of their own, and GET /users/me/team rejects them.
-  it.each(['SUPER_ADMIN', 'ADMIN', 'MR', 'SALES_PERSON'] as Role[])('returns false for %s', (role) => {
-    useAuthStore.setState({ user: makeUser(role) });
-    expect(useAuthStore.getState().isManager()).toBe(false);
-  });
-
-  it('returns false when no user', () => {
-    expect(useAuthStore.getState().isManager()).toBe(false);
-  });
-});

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthUser } from '@/types/api';
-import { isFieldRole, isManagerRole } from '@/utils/roles';
+import { isFieldRole } from '@/utils/roles';
 
 interface AuthState {
   user: AuthUser | null;
@@ -14,7 +14,6 @@ interface AuthState {
   isAdmin: () => boolean;
   isSuperAdmin: () => boolean;
   isField: () => boolean;
-  isManager: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -47,8 +46,6 @@ export const useAuthStore = create<AuthState>()(
       isSuperAdmin: () => get().user?.role === 'SUPER_ADMIN',
 
       isField: () => isFieldRole(get().user?.role),
-
-      isManager: () => isManagerRole(get().user?.role),
     }),
     {
       name: 'pharma-auth',

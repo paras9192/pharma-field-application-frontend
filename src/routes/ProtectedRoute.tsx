@@ -32,19 +32,6 @@ export function AdminRoute() {
   return <Outlet />;
 }
 
-/**
- * Guards the team roster, which is backed by GET /users/me/team — an endpoint only
- * ASM and ZSM can reach. Admins are deliberately excluded: they have no reports of
- * their own, and /users already gives them the full directory.
- */
-export function TeamRoute() {
-  const loggedIn = useActiveSession();
-  const isManager = useAuthStore(s => s.isManager());
-  if (!loggedIn) return <Navigate to="/login" replace />;
-  if (!isManager) return <Navigate to="/" replace />;
-  return <Outlet />;
-}
-
 export function GuestRoute() {
   const loggedIn = useActiveSession();
   if (loggedIn) return <Navigate to="/" replace />;

@@ -10,10 +10,9 @@ import { useShallow } from 'zustand/react/shallow';
 import { authApi } from '@/api/auth';
 
 export function Sidebar() {
-  const { user, isAdmin, isManager, logout, refreshToken } = useAuthStore(useShallow(s => ({
+  const { user, isAdmin, logout, refreshToken } = useAuthStore(useShallow(s => ({
     user: s.user,
     isAdmin: s.isAdmin(),
-    isManager: s.isManager(),
     logout: s.logout,
     refreshToken: s.refreshToken,
   })));
@@ -40,9 +39,6 @@ export function Sidebar() {
 
   const fieldLinks = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    // ASM/ZSM are field users with a team, so this sits alongside the field screens
-    // rather than replacing any of them.
-    ...(isManager ? [{ to: '/my-team', icon: Users, label: 'My Team' }] : []),
     { to: '/attendance', icon: CalendarCheck, label: 'Attendance' },
     { to: '/visits', icon: ClipboardList, label: 'Visits' },
     { to: '/doctors', icon: Stethoscope, label: 'Doctors' },
