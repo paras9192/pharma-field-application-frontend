@@ -4,6 +4,9 @@ frontend:
     preBuild:
       commands:
         - npm ci
+        # Fails the deploy on a hooks-order violation, which typechecking and
+        # the build cannot catch — see src/test/hooks-order.test.ts.
+        - npm test
     build:
       commands:
         - npm run build
