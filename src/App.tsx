@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyWithRetry } from '@/pwa/lazyWithRetry';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -23,35 +24,35 @@ const PageLoader = () => (
   </div>
 );
 
-const LoginPage = lazy(() => import('@/features/auth/LoginPage'));
-const SetPasswordPage = lazy(() => import('@/features/auth/SetPasswordPage'));
-const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'));
-const AttendancePage = lazy(() => import('@/features/attendance/AttendancePage'));
-const DoctorsPage = lazy(() => import('@/features/doctors/DoctorsPage'));
-const DoctorDetailPage = lazy(() => import('@/features/doctors/DoctorDetailPage'));
-const DoctorFormPage = lazy(() => import('@/features/doctors/DoctorFormPage'));
-const ChemistsPage = lazy(() => import('@/features/chemists/ChemistsPage'));
-const ChemistDetailPage = lazy(() => import('@/features/chemists/ChemistDetailPage'));
-const ChemistFormPage = lazy(() => import('@/features/chemists/ChemistFormPage'));
-const VisitsPage = lazy(() => import('@/features/visits/VisitsPage'));
-const VisitDetailPage = lazy(() => import('@/features/visits/VisitDetailPage'));
-const VisitFormPage = lazy(() => import('@/features/visits/VisitFormPage'));
-const DailyReportsPage = lazy(() => import('@/features/dailyReports/DailyReportsPage'));
-const DailyReportDetailPage = lazy(() => import('@/features/dailyReports/DailyReportDetailPage'));
-const DailyReportNewPage = lazy(() => import('@/features/dailyReports/DailyReportNewPage'));
-const UsersPage = lazy(() => import('@/features/users/UsersPage'));
-const UserDetailPage = lazy(() => import('@/features/users/UserDetailPage'));
-const UserFormPage = lazy(() => import('@/features/users/UserFormPage'));
-const TerritoriesPage = lazy(() => import('@/features/territories/TerritoriesPage'));
-const SettingsPage = lazy(() => import('@/features/auth/SettingsPage'));
-// const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'));
-// const OrderDetailPage = lazy(() => import('@/features/orders/OrderDetailPage'));
-// const OrderFormPage = lazy(() => import('@/features/orders/OrderFormPage'));
-const BillsPage = lazy(() => import('@/features/bills/BillsPage'));
-const BillDetailPage = lazy(() => import('@/features/bills/BillDetailPage'));
-const BillFormPage = lazy(() => import('@/features/bills/BillFormPage'));
-const PaymentsPage = lazy(() => import('@/features/payments/PaymentsPage'));
-const PaymentsDashboardPage = lazy(() => import('@/features/dashboard/PaymentsDashboardPage'));
+const LoginPage = lazyWithRetry(() => import('@/features/auth/LoginPage'));
+const SetPasswordPage = lazyWithRetry(() => import('@/features/auth/SetPasswordPage'));
+const DashboardPage = lazyWithRetry(() => import('@/features/dashboard/DashboardPage'));
+const AttendancePage = lazyWithRetry(() => import('@/features/attendance/AttendancePage'));
+const DoctorsPage = lazyWithRetry(() => import('@/features/doctors/DoctorsPage'));
+const DoctorDetailPage = lazyWithRetry(() => import('@/features/doctors/DoctorDetailPage'));
+const DoctorFormPage = lazyWithRetry(() => import('@/features/doctors/DoctorFormPage'));
+const ChemistsPage = lazyWithRetry(() => import('@/features/chemists/ChemistsPage'));
+const ChemistDetailPage = lazyWithRetry(() => import('@/features/chemists/ChemistDetailPage'));
+const ChemistFormPage = lazyWithRetry(() => import('@/features/chemists/ChemistFormPage'));
+const VisitsPage = lazyWithRetry(() => import('@/features/visits/VisitsPage'));
+const VisitDetailPage = lazyWithRetry(() => import('@/features/visits/VisitDetailPage'));
+const VisitFormPage = lazyWithRetry(() => import('@/features/visits/VisitFormPage'));
+const DailyReportsPage = lazyWithRetry(() => import('@/features/dailyReports/DailyReportsPage'));
+const DailyReportDetailPage = lazyWithRetry(() => import('@/features/dailyReports/DailyReportDetailPage'));
+const DailyReportNewPage = lazyWithRetry(() => import('@/features/dailyReports/DailyReportNewPage'));
+const UsersPage = lazyWithRetry(() => import('@/features/users/UsersPage'));
+const UserDetailPage = lazyWithRetry(() => import('@/features/users/UserDetailPage'));
+const UserFormPage = lazyWithRetry(() => import('@/features/users/UserFormPage'));
+const TerritoriesPage = lazyWithRetry(() => import('@/features/territories/TerritoriesPage'));
+const SettingsPage = lazyWithRetry(() => import('@/features/auth/SettingsPage'));
+// const OrdersPage = lazyWithRetry(() => import('@/features/orders/OrdersPage'));
+// const OrderDetailPage = lazyWithRetry(() => import('@/features/orders/OrderDetailPage'));
+// const OrderFormPage = lazyWithRetry(() => import('@/features/orders/OrderFormPage'));
+const BillsPage = lazyWithRetry(() => import('@/features/bills/BillsPage'));
+const BillDetailPage = lazyWithRetry(() => import('@/features/bills/BillDetailPage'));
+const BillFormPage = lazyWithRetry(() => import('@/features/bills/BillFormPage'));
+const PaymentsPage = lazyWithRetry(() => import('@/features/payments/PaymentsPage'));
+const PaymentsDashboardPage = lazyWithRetry(() => import('@/features/dashboard/PaymentsDashboardPage'));
 
 export default function App() {
   return (
