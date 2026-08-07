@@ -1,0 +1,18 @@
+{
+  /*
+   * Tests are excluded from tsconfig.app.json so they never reach the build.
+   * Without a project of their own they resolve against TypeScript's defaults,
+   * which have no `paths` entry — so every `@/…` import in a spec showed up as
+   * "Cannot find module" in the editor while `npm run build` stayed green.
+   *
+   * This inherits the app's compiler options (path aliases included) and adds
+   * the test globals, so specs are checked the same way the app is.
+   */
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "node"]
+  },
+  "include": ["src/test", "src/**/*.test.ts", "src/**/*.test.tsx"],
+  "exclude": []
+}

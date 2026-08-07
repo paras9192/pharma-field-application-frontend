@@ -3,7 +3,15 @@ import { useAuthStore } from '@/store/authStore';
 import type { AuthUser, Role } from '@/types/api';
 
 function makeUser(role: Role): AuthUser {
-  return { id: '1', name: 'Test', email: 'test@test.com', role, isActive: true };
+  return {
+    id: '1',
+    name: 'Test',
+    email: 'test@test.com',
+    phone: '9876543210',
+    role,
+    employeeCode: null,
+    profilePhoto: null,
+  };
 }
 
 beforeEach(() => {

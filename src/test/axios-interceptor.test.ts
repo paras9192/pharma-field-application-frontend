@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import axios from 'axios';
+import { type AxiosInstance } from 'axios';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -15,13 +15,40 @@ function makeAxiosError(status: number, config: Record<string, unknown> = {}) {
   return err;
 }
 
+
+// ── interceptor access ────────────────────────────────────────────────────────
+
+// The handler arrays are internal to axios and carry no public types. Reaching in
+// through these two helpers keeps the cast in one place and, unlike suppressing
+// the error at each call site, leaves the calls themselves type-checked.
+interface TestRequestConfig {
+  headers: Record<string, string>;
+  url: string;
+}
+
+function requestHandler(api: AxiosInstance) {
+  return (
+    api.interceptors.request as unknown as {
+      handlers: { fulfilled: (config: TestRequestConfig) => Promise<TestRequestConfig> }[];
+    }
+  ).handlers[0];
+}
+
+function responseHandler(api: AxiosInstance) {
+  return (
+    api.interceptors.response as unknown as {
+      handlers: { rejected: (error: unknown) => Promise<unknown> }[];
+    }
+  ).handlers[0];
+}
+
 // ── module setup ──────────────────────────────────────────────────────────────
 
 // We mock axios.post *before* importing the module so the interceptor picks up
 // the mock version.
 const mockAxiosPost = vi.fn();
 vi.mock('axios', async (importOriginal) => {
-  const actual = await importOriginal<typeof axios>();
+  const actual = await importOriginal<typeof import('axios')>();
   return {
     ...actual,
     default: {
@@ -35,8 +62,6 @@ vi.mock('axios', async (importOriginal) => {
 // ── tests ─────────────────────────────────────────────────────────────────────
 
 describe('Axios 401 interceptor', () => {
-  let deleteOrig: typeof localStorage.removeItem;
-
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
@@ -49,7 +74,6 @@ describe('Axios 401 interceptor', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    if (deleteOrig) localStorage.removeItem = deleteOrig;
   });
 
   it('attaches Authorization header when token is in localStorage', async () => {
@@ -59,8 +83,7 @@ describe('Axios 401 interceptor', () => {
     // Peek at the interceptor list to confirm the request interceptor runs
     // We can't call the real server; just verify the config is mutated.
     const config = { headers: {} as Record<string, string>, url: '/test' };
-    // @ts-expect-error – accessing private handler array for testing
-    const handler = api.interceptors.request.handlers[0];
+    const handler = requestHandler(api);
     const result = await handler.fulfilled(config);
     expect(result.headers['Authorization']).toBe('Bearer my-token');
   });
@@ -70,8 +93,7 @@ describe('Axios 401 interceptor', () => {
     const { api } = await import('@/api/axios');
 
     const config = { headers: {} as Record<string, string>, url: '/test' };
-    // @ts-expect-error – accessing private handler array for testing
-    const handler = api.interceptors.request.handlers[0];
+    const handler = requestHandler(api);
     const result = await handler.fulfilled(config);
     expect(result.headers['Authorization']).toBeUndefined();
   });
@@ -81,8 +103,7 @@ describe('Axios 401 interceptor', () => {
     const { api } = await import('@/api/axios');
 
     const error = makeAxiosError(401);
-    // @ts-expect-error – accessing private handler
-    const handler = api.interceptors.response.handlers[0];
+    const handler = responseHandler(api);
 
     await expect(handler.rejected(error)).rejects.toBeDefined();
     expect(window.location.href).toBe('/login');
@@ -100,8 +121,7 @@ describe('Axios 401 interceptor', () => {
     const { api } = await import('@/api/axios');
 
     const error = makeAxiosError(401);
-    // @ts-expect-error – accessing private handler
-    const handler = api.interceptors.response.handlers[0];
+    const handler = responseHandler(api);
 
     // The retry will fail with a network error in jsdom (no real server),
     // but the important assertions are that refresh was called and tokens updated.
@@ -132,8 +152,7 @@ describe('Axios 401 interceptor', () => {
     const { api } = await import('@/api/axios');
 
     const error = makeAxiosError(401);
-    // @ts-expect-error – accessing private handler
-    const handler = api.interceptors.response.handlers[0];
+    const handler = responseHandler(api);
 
     await expect(handler.rejected(error)).rejects.toBeDefined();
     expect(window.location.href).toBe('/login');
@@ -148,8 +167,7 @@ describe('Axios 401 interceptor', () => {
     const { api } = await import('@/api/axios');
 
     const error = makeAxiosError(401, { _retry: true });
-    // @ts-expect-error – accessing private handler
-    const handler = api.interceptors.response.handlers[0];
+    const handler = responseHandler(api);
 
     await expect(handler.rejected(error)).rejects.toBeDefined();
     // Refresh endpoint must NOT be called
@@ -161,8 +179,7 @@ describe('Axios 401 interceptor', () => {
     const { api } = await import('@/api/axios');
 
     const error = makeAxiosError(500);
-    // @ts-expect-error – accessing private handler
-    const handler = api.interceptors.response.handlers[0];
+    const handler = responseHandler(api);
 
     await expect(handler.rejected(error)).rejects.toBeDefined();
     expect(mockAxiosPost).not.toHaveBeenCalled();
@@ -173,8 +190,7 @@ describe('Axios 401 interceptor', () => {
     const { api } = await import('@/api/axios');
 
     const error = makeAxiosError(401, { url: '/auth/login' });
-    // @ts-expect-error – accessing private handler
-    const handler = api.interceptors.response.handlers[0];
+    const handler = responseHandler(api);
 
     await expect(handler.rejected(error)).rejects.toBeDefined();
     // Must NOT trigger refresh or a hard redirect — the form handles it
@@ -187,8 +203,7 @@ describe('Axios 401 interceptor', () => {
     const { api } = await import('@/api/axios');
 
     const error = makeAxiosError(401, { url: '/auth/refresh' });
-    // @ts-expect-error – accessing private handler
-    const handler = api.interceptors.response.handlers[0];
+    const handler = responseHandler(api);
 
     await expect(handler.rejected(error)).rejects.toBeDefined();
     expect(mockAxiosPost).not.toHaveBeenCalled();
