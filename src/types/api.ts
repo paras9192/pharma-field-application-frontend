@@ -147,14 +147,27 @@ export interface CreateUserPayload {
   dateOfJoining?: string;
 }
 
+// PATCH /users/:id — admin edit. Mirrors the backend's UpdateUserDto exactly:
+// the API runs forbidNonWhitelisted, so any field not listed here is a 400.
 export interface UpdateUserPayload {
   name?: string;
+  // The user's login identity — admin-editable, and must stay unique.
+  email?: string;
   phone?: string;
   employeeCode?: string;
   profilePhoto?: string;
   dateOfJoining?: string;
   isActive?: boolean;
   role?: Role;
+
+  // Personal details — an admin may fill these in on a user's behalf.
+  dateOfBirth?: string;
+  gender?: Gender;
+  bloodGroup?: string;
+  address?: string;
+  bio?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
 }
 
 // ─── Territory ────────────────────────────────────────────────────────────────

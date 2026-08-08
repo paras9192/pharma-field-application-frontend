@@ -40,6 +40,23 @@ export const usersApi = {
     });
   },
 
+  // ── Admin acting on another user (SUPER_ADMIN / ADMIN only) ──
+  // Same S3 flow as the self-service uploads above; the key is presigned by the
+  // admin, and the backend writes it onto the target user's record.
+  uploadPhotoFor: async (userId: string, file: File) => {
+    const [uploaded] = await uploadFilesToS3('profile-photos', [await compressImage(file)]);
+    return api.post<ApiResponse<User>>(`/users/${userId}/photo`, { key: uploaded.key }, {
+      timeout: UPLOAD_TIMEOUT,
+    });
+  },
+
+  uploadDocumentFor: async (userId: string, type: ProfileDocumentType, file: File) => {
+    const [uploaded] = await uploadFilesToS3('employee-documents', [await compressImage(file)]);
+    return api.post<ApiResponse<User>>(`/users/${userId}/documents/${type}`, { key: uploaded.key }, {
+      timeout: UPLOAD_TIMEOUT,
+    });
+  },
+
   resetPassword: (id: string, password: string) =>
     api.post<ApiResponse<{ message: string }>>(`/users/${id}/reset-password`, { password }),
 

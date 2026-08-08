@@ -125,56 +125,68 @@ export default function UserDetailPage() {
         <div className="space-y-2.5">
           <InfoRow icon={<Mail size={14} />} label="Email" value={user.email} />
           <InfoRow icon={<Phone size={14} />} label="Phone" value={user.phone} />
-          {user.employeeCode && <InfoRow icon={<span className="text-xs font-bold">#</span>} label="Employee Code" value={user.employeeCode} />}
-          {user.dateOfJoining && <InfoRow icon={<Calendar size={14} />} label="Joined" value={dayjs(user.dateOfJoining).format('MMMM D, YYYY')} />}
+          <InfoRow icon={<span className="text-xs font-bold">#</span>} label="Employee Code" value={user.employeeCode} />
+          <InfoRow
+            icon={<Calendar size={14} />}
+            label="Joined"
+            value={user.dateOfJoining ? dayjs(user.dateOfJoining).format('MMMM D, YYYY') : null}
+          />
         </div>
       </Card>
 
-      {/* Personal details — full profile, visible to Admin/Super Admin only (route-gated) */}
-      {(user.dateOfBirth || user.gender || user.bloodGroup || user.address || user.bio || user.emergencyContactName || user.emergencyContactPhone) && (
-        <Card>
-          <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <UserIcon size={15} /> Personal Details
-          </h3>
-          <div className="space-y-2.5">
-            {user.dateOfBirth && <InfoRow icon={<Calendar size={14} />} label="Date of Birth" value={dayjs(user.dateOfBirth).format('MMMM D, YYYY')} />}
-            {user.gender && <InfoRow icon={<UserIcon size={14} />} label="Gender" value={user.gender.charAt(0) + user.gender.slice(1).toLowerCase()} />}
-            {user.bloodGroup && <InfoRow icon={<Droplet size={14} />} label="Blood Group" value={user.bloodGroup} />}
-            {user.address && <InfoRow icon={<MapPin size={14} />} label="Address" value={user.address} />}
-            {user.bio && <InfoRow icon={<FileText size={14} />} label="Bio" value={user.bio} />}
-            {(user.emergencyContactName || user.emergencyContactPhone) && (
-              <InfoRow
-                icon={<Heart size={14} />}
-                label="Emergency Contact"
-                value={[user.emergencyContactName, user.emergencyContactPhone].filter(Boolean).join(' · ')}
-              />
-            )}
-          </div>
-        </Card>
-      )}
+      {/* Personal details — the full profile. This route is behind AdminRoute, so
+          only Admin and Super Admin ever reach it. Rendered in full rather than
+          per-field, so an admin can see at a glance what a user has yet to fill in. */}
+      <Card>
+        <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+          <UserIcon size={15} /> Personal Details
+        </h3>
+        <div className="space-y-2.5">
+          <InfoRow
+            icon={<Calendar size={14} />}
+            label="Date of Birth"
+            value={user.dateOfBirth ? dayjs(user.dateOfBirth).format('MMMM D, YYYY') : null}
+          />
+          <InfoRow
+            icon={<UserIcon size={14} />}
+            label="Gender"
+            value={user.gender ? user.gender.charAt(0) + user.gender.slice(1).toLowerCase() : null}
+          />
+          <InfoRow icon={<Droplet size={14} />} label="Blood Group" value={user.bloodGroup} />
+          <InfoRow icon={<MapPin size={14} />} label="Address" value={user.address} />
+          <InfoRow icon={<FileText size={14} />} label="Bio" value={user.bio} />
+          <InfoRow
+            icon={<Heart size={14} />}
+            label="Emergency Contact"
+            value={[user.emergencyContactName, user.emergencyContactPhone].filter(Boolean).join(' · ') || null}
+          />
+        </div>
+      </Card>
 
       {/* KYC documents — view only; uploading is a self-service action on Settings */}
-      {(user.aadhaarUrl || user.panUrl || user.tenthMarksheetUrl) && (
-        <Card>
-          <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
-            <FileText size={15} /> Documents (KYC)
-          </h3>
-          <div className="space-y-2">
-            {[
-              { label: 'Aadhaar', url: user.aadhaarUrl },
-              { label: 'PAN', url: user.panUrl },
-              { label: '10th Marksheet', url: user.tenthMarksheetUrl },
-            ].filter(d => d.url).map(d => (
-              <div key={d.label} className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
-                <span className="text-sm text-slate-700">{d.label}</span>
-                <a href={d.url!} target="_blank" rel="noreferrer" className="text-xs text-blue-600 inline-flex items-center gap-1 hover:underline">
+      <Card>
+        <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+          <FileText size={15} /> Documents (KYC)
+        </h3>
+        <div className="space-y-2">
+          {[
+            { label: 'Aadhaar', url: user.aadhaarUrl },
+            { label: 'PAN', url: user.panUrl },
+            { label: '10th Marksheet', url: user.tenthMarksheetUrl },
+          ].map(d => (
+            <div key={d.label} className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
+              <span className="text-sm text-slate-700">{d.label}</span>
+              {d.url ? (
+                <a href={d.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 inline-flex items-center gap-1 hover:underline">
                   View <ExternalLink size={11} />
                 </a>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+              ) : (
+                <span className="text-xs text-slate-300 italic">Not uploaded</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Territories */}
       {territoriesQuery.data && territoriesQuery.data.length > 0 && (
@@ -363,13 +375,29 @@ function AssignChemistsModal({
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+/**
+ * Admins see the full profile, so every field is always rendered — an empty one
+ * reads as "Not provided" rather than vanishing. Hiding blanks made a sparse
+ * profile look like a broken page, and gave no way to tell which details a user
+ * still owes.
+ */
+function InfoRow({
+  icon, label, value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | null | undefined;
+}) {
   return (
     <div className="flex items-start gap-3">
       <div className="text-slate-400 mt-0.5 flex-shrink-0">{icon}</div>
-      <div>
+      <div className="min-w-0">
         <div className="text-xs text-slate-400">{label}</div>
-        <div className="text-sm text-slate-700">{value}</div>
+        {value ? (
+          <div className="text-sm text-slate-700 break-words">{value}</div>
+        ) : (
+          <div className="text-sm text-slate-300 italic">Not provided</div>
+        )}
       </div>
     </div>
   );
