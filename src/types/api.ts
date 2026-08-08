@@ -122,6 +122,19 @@ export interface User {
   updatedAt: string;
   role: { id: number; name: Role };
   createdBy: { id: string; name: string } | null;
+
+  // Only present on GET /users/:id (admin/super-admin detail view), not on the
+  // list endpoint — mirrors the extra fields in MyProfile.
+  dateOfBirth?: string | null;
+  gender?: Gender | null;
+  bloodGroup?: string | null;
+  address?: string | null;
+  bio?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  aadhaarUrl?: string | null;
+  panUrl?: string | null;
+  tenthMarksheetUrl?: string | null;
 }
 
 export interface CreateUserPayload {

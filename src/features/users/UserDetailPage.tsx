@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send } from 'lucide-react';
+import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send, User as UserIcon, FileText, ExternalLink, Droplet, Heart } from 'lucide-react';
 import { usersApi } from '@/api/users';
 import { chemistsApi } from '@/api/chemists';
 import { useAuthStore } from '@/store/authStore';
@@ -129,6 +129,52 @@ export default function UserDetailPage() {
           {user.dateOfJoining && <InfoRow icon={<Calendar size={14} />} label="Joined" value={dayjs(user.dateOfJoining).format('MMMM D, YYYY')} />}
         </div>
       </Card>
+
+      {/* Personal details — full profile, visible to Admin/Super Admin only (route-gated) */}
+      {(user.dateOfBirth || user.gender || user.bloodGroup || user.address || user.bio || user.emergencyContactName || user.emergencyContactPhone) && (
+        <Card>
+          <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <UserIcon size={15} /> Personal Details
+          </h3>
+          <div className="space-y-2.5">
+            {user.dateOfBirth && <InfoRow icon={<Calendar size={14} />} label="Date of Birth" value={dayjs(user.dateOfBirth).format('MMMM D, YYYY')} />}
+            {user.gender && <InfoRow icon={<UserIcon size={14} />} label="Gender" value={user.gender.charAt(0) + user.gender.slice(1).toLowerCase()} />}
+            {user.bloodGroup && <InfoRow icon={<Droplet size={14} />} label="Blood Group" value={user.bloodGroup} />}
+            {user.address && <InfoRow icon={<MapPin size={14} />} label="Address" value={user.address} />}
+            {user.bio && <InfoRow icon={<FileText size={14} />} label="Bio" value={user.bio} />}
+            {(user.emergencyContactName || user.emergencyContactPhone) && (
+              <InfoRow
+                icon={<Heart size={14} />}
+                label="Emergency Contact"
+                value={[user.emergencyContactName, user.emergencyContactPhone].filter(Boolean).join(' · ')}
+              />
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* KYC documents — view only; uploading is a self-service action on Settings */}
+      {(user.aadhaarUrl || user.panUrl || user.tenthMarksheetUrl) && (
+        <Card>
+          <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <FileText size={15} /> Documents (KYC)
+          </h3>
+          <div className="space-y-2">
+            {[
+              { label: 'Aadhaar', url: user.aadhaarUrl },
+              { label: 'PAN', url: user.panUrl },
+              { label: '10th Marksheet', url: user.tenthMarksheetUrl },
+            ].filter(d => d.url).map(d => (
+              <div key={d.label} className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2">
+                <span className="text-sm text-slate-700">{d.label}</span>
+                <a href={d.url!} target="_blank" rel="noreferrer" className="text-xs text-blue-600 inline-flex items-center gap-1 hover:underline">
+                  View <ExternalLink size={11} />
+                </a>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Territories */}
       {territoriesQuery.data && territoriesQuery.data.length > 0 && (
