@@ -23,6 +23,14 @@ export function canCreateBill(role: Role): boolean {
   return role === 'SUPER_ADMIN' || role === 'ADMIN';
 }
 
+export function canCreateDoctor(role: Role): boolean {
+  return role !== 'SALES_PERSON';
+}
+
+export function canCreateChemist(role: Role): boolean {
+  return role !== 'SALES_PERSON';
+}
+
 export function canUploadBillImage(_role: Role): boolean {
   return true;
 }
