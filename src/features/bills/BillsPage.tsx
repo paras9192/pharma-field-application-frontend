@@ -34,6 +34,7 @@ export default function BillsPage() {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const currentRole = useAuthStore(s => s.user?.role);
+  const canCreate = !!currentRole && canCreateBill(currentRole);
 
   const query = useQuery({
     queryKey: ['bills', { search, status, page }],
@@ -49,7 +50,7 @@ export default function BillsPage() {
           <h2 className="text-xl font-bold text-slate-800">Bills</h2>
           {query.data && <p className="text-sm text-slate-400">{query.data.meta.total} total</p>}
         </div>
-        {currentRole && canCreateBill(currentRole) && (
+        {canCreate && (
           <Link to="/bills/new">
             <Button size="sm"><Plus size={16} /> New Bill</Button>
           </Link>
@@ -83,7 +84,7 @@ export default function BillsPage() {
           icon={<Receipt size={40} />}
           title="No bills found"
           description={search || status ? 'Try different filters' : 'Create your first bill'}
-          action={!search && !status ? <Link to="/bills/new"><Button size="sm"><Plus size={14} /> New Bill</Button></Link> : undefined}
+          action={!search && !status && canCreate ? <Link to="/bills/new"><Button size="sm"><Plus size={14} /> New Bill</Button></Link> : undefined}
         />
       ) : (
         <>

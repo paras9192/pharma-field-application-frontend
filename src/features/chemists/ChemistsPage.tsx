@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, ShoppingBag, Phone, MapPin, User, Bell } from 'lucide-react';
 import { chemistsApi } from '@/api/chemists';
 import { billsApi } from '@/api/bills';
+import { canCreateChemist } from '@/utils/permissions';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -19,6 +20,8 @@ import type { Chemist } from '@/types/api';
 export default function ChemistsPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const currentRole = useAuthStore(s => s.user?.role);
+  const canCreate = !!currentRole && canCreateChemist(currentRole);
 
   const query = useQuery({
     queryKey: ['chemists', { search, page }],
@@ -50,9 +53,11 @@ export default function ChemistsPage() {
           <h2 className="text-xl font-bold text-slate-800">Chemists</h2>
           {query.data && <p className="text-sm text-slate-400">{query.data.meta.total} total</p>}
         </div>
-        <Link to="/chemists/new">
-          <Button size="sm"><Plus size={16} /> Add</Button>
-        </Link>
+        {canCreate && (
+          <Link to="/chemists/new">
+            <Button size="sm"><Plus size={16} /> Add</Button>
+          </Link>
+        )}
       </div>
 
       <Input
@@ -71,7 +76,7 @@ export default function ChemistsPage() {
           icon={<ShoppingBag size={40} />}
           title="No chemists found"
           description={search ? 'Try a different search' : 'Add your first chemist'}
-          action={!search ? <Link to="/chemists/new"><Button size="sm">Add Chemist</Button></Link> : undefined}
+          action={!search && canCreate ? <Link to="/chemists/new"><Button size="sm">Add Chemist</Button></Link> : undefined}
         />
       ) : (
         <>

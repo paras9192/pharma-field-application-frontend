@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Stethoscope, Phone, MapPin } from 'lucide-react';
 import { doctorsApi } from '@/api/doctors';
+import { useAuthStore } from '@/store/authStore';
+import { canCreateDoctor } from '@/utils/permissions';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
@@ -15,6 +17,8 @@ import type { Doctor } from '@/types/api';
 export default function DoctorsPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const currentRole = useAuthStore(s => s.user?.role);
+  const canCreate = !!currentRole && canCreateDoctor(currentRole);
 
   const query = useQuery({
     queryKey: ['doctors', { search, page }],
@@ -33,9 +37,11 @@ export default function DoctorsPage() {
             <p className="text-sm text-slate-400">{query.data.meta.total} total</p>
           )}
         </div>
-        <Link to="/doctors/new">
-          <Button size="sm"><Plus size={16} /> Add</Button>
-        </Link>
+        {canCreate && (
+          <Link to="/doctors/new">
+            <Button size="sm"><Plus size={16} /> Add</Button>
+          </Link>
+        )}
       </div>
 
       {/* Search */}
@@ -56,7 +62,7 @@ export default function DoctorsPage() {
           icon={<Stethoscope size={40} />}
           title="No doctors found"
           description={search ? 'Try a different search term' : 'Add your first doctor'}
-          action={!search ? <Link to="/doctors/new"><Button size="sm">Add Doctor</Button></Link> : undefined}
+          action={!search && canCreate ? <Link to="/doctors/new"><Button size="sm">Add Doctor</Button></Link> : undefined}
         />
       ) : (
         <>
