@@ -1,9 +1,9 @@
 import { api } from './axios';
-import type { NotificationsResponse } from '@/types/api';
+import type { ApiResponse, NotificationsResponse } from '@/types/api';
 
 export const notificationsApi = {
   list: (params?: { page?: number; limit?: number }) =>
-    api.get<NotificationsResponse>('/notifications', { params }),
+    api.get<ApiResponse<NotificationsResponse>>('/notifications', { params }),
 
   markRead: (id: string) =>
     api.patch(`/notifications/${id}/read`),
@@ -11,8 +11,8 @@ export const notificationsApi = {
   markAllRead: () =>
     api.patch('/notifications/read-all'),
 
-  saveFcmToken: (token: string) =>
-    api.post('/notifications/fcm-token', { token }),
+  saveFcmToken: (token: string, deviceInfo?: string) =>
+    api.post('/notifications/fcm-token', { token, deviceInfo }),
 
   removeFcmToken: (token: string) =>
     api.delete('/notifications/fcm-token', { data: { token } }),

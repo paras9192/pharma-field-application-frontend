@@ -26,18 +26,19 @@ function getFirebaseMessaging(): Messaging | null {
   }
 }
 
-export async function requestFCMToken(): Promise<string | null> {
+export async function requestFCMToken(swReg?: ServiceWorkerRegistration): Promise<string | null> {
   try {
     const messaging = getFirebaseMessaging();
     if (!messaging) return null;
 
-    const swReg = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+    swReg ??= await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
     const token = await getToken(messaging, {
       vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
       serviceWorkerRegistration: swReg,
     });
     return token || null;
-  } catch {
+  } catch (err) {
+    console.error('[push] requestFCMToken failed:', err);
     return null;
   }
 }

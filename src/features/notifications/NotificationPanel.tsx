@@ -4,28 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck, X } from 'lucide-react';
 import { notificationsApi } from '@/api/notifications';
 import type { AppNotification } from '@/types/api';
+import { getNotificationLink } from './notificationMeta';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(relativeTime);
-
-function getNotificationLink(n: AppNotification): string {
-  const d = n.data ?? {};
-  switch (n.type) {
-    case 'PAYMENT_COLLECTED':
-    case 'BILL_CREATED':
-    case 'BILL_OVERDUE':
-    case 'PAYMENT_REMINDER_SENT':
-      return d.billId ? `/bills/${d.billId}` : '/bills';
-    case 'ORDER_CREATED':
-    case 'ORDER_STATUS_CHANGED':
-      return d.orderId ? `/orders/${d.orderId}` : '/';
-    case 'VISIT_LOGGED':
-      return d.visitId ? `/visits/${d.visitId}` : '/visits';
-    default:
-      return '/';
-  }
-}
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -36,7 +19,7 @@ export function NotificationBell() {
   const { data } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationsApi.list({ limit: 20 }),
-    select: r => r.data,
+    select: r => r.data.data,
     refetchInterval: 30_000,
     retry: false,
   });
