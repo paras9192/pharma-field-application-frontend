@@ -20,6 +20,7 @@ const startOfMonth = () => dayjs().startOf('month').format('YYYY-MM-DD');
 const todayStr = () => dayjs().format('YYYY-MM-DD');
 
 const RANGE_PRESETS: { label: string; range: () => [string, string] }[] = [
+  { label: 'Today', range: () => [todayStr(), todayStr()] },
   { label: 'This month', range: () => [startOfMonth(), todayStr()] },
   { label: 'Last 30 days', range: () => [dayjs().subtract(29, 'day').format('YYYY-MM-DD'), todayStr()] },
   { label: 'Last month', range: () => {
