@@ -1,17 +1,25 @@
 // Firebase Messaging Service Worker
-// Replace the config below with your Firebase project config after setup.
-// These values are safe to commit — they are public identifiers, not secrets.
+//
+// This file has no build step — Vite serves it from public/ untouched, so it
+// can't read import.meta.env or .env.local directly. Instead, the app passes
+// the config as URL query params when it registers this worker (see
+// registerAndSaveToken() in src/hooks/usePushNotifications.tsx), keeping
+// .env.local the single source of truth instead of duplicating values here.
+// These values are safe to expose this way — they are public identifiers,
+// not secrets.
 
 importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging-compat.js');
 
+const params = new URLSearchParams(self.location.search);
+
 firebase.initializeApp({
-  apiKey: 'AIzaSyAdCJkSh4V5sHvP0KEM7ozPOZL6SGOiFHo',
-  authDomain: 'pharma-field.firebaseapp.com',
-  projectId: 'pharma-field',
-  storageBucket: 'pharma-field.firebasestorage.app',
-  messagingSenderId: '967883708135',
-  appId: '1:967883708135:web:852efdffcb1a43db303442',
+  apiKey: params.get('apiKey'),
+  authDomain: params.get('authDomain'),
+  projectId: params.get('projectId'),
+  storageBucket: params.get('storageBucket'),
+  messagingSenderId: params.get('messagingSenderId'),
+  appId: params.get('appId'),
 });
 
 const messaging = firebase.messaging();

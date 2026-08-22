@@ -1,7 +1,18 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
-const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000') + '/api/v1';
-export const BACKEND_ORIGIN = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+// The localhost default only makes sense for local dev. A production build
+// (Amplify) with this var missing or misnamed must fail loudly at load time
+// instead of silently shipping a bundle that points every user's browser at
+// their own localhost:3000.
+function requireApiUrl(): string {
+  const url = import.meta.env.VITE_API_URL;
+  if (url) return url;
+  if (import.meta.env.DEV) return 'http://localhost:3000';
+  throw new Error('VITE_API_URL is not set — check the environment variables for this Amplify build.');
+}
+
+export const BACKEND_ORIGIN = requireApiUrl();
+const BASE_URL = BACKEND_ORIGIN + '/api/v1';
 
 export const api = axios.create({
   baseURL: BASE_URL,

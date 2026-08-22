@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { requestFCMToken, onForegroundMessage } from '@/lib/firebase';
+import { requestFCMToken, onForegroundMessage, getMessagingSwUrl } from '@/lib/firebase';
 import { notificationsApi } from '@/api/notifications';
 import { getNotificationLink } from '@/features/notifications/notificationMeta';
 import { PushToast } from '@/features/notifications/PushToast';
@@ -23,7 +23,7 @@ export const pushSupported = () =>
   'Notification' in window && 'serviceWorker' in navigator && !!import.meta.env.VITE_FIREBASE_API_KEY;
 
 async function registerAndSaveToken(isCancelled: () => boolean = () => false) {
-  const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+  const swReg = await navigator.serviceWorker.register(getMessagingSwUrl());
   await navigator.serviceWorker.ready;
   if (isCancelled()) return;
 
