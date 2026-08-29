@@ -8,6 +8,11 @@ export const paymentsApi = {
     paymentMode: PaymentMode;
     referenceNumber?: string;
     notes?: string;
+    /** S3 key of the field / location photo — required by the backend when amount is 0. */
+    fieldPhoto?: string;
+    lat?: number;
+    lng?: number;
+    locationCapturedAt?: string;
   }) => api.post<ApiResponse<Payment>>('/payments', data),
 
   list: (params?: {

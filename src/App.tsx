@@ -44,6 +44,9 @@ const UsersPage = lazyWithRetry(() => import('@/features/users/UsersPage'));
 const UserDetailPage = lazyWithRetry(() => import('@/features/users/UserDetailPage'));
 const UserFormPage = lazyWithRetry(() => import('@/features/users/UserFormPage'));
 const TerritoriesPage = lazyWithRetry(() => import('@/features/territories/TerritoriesPage'));
+const ProductsPage = lazyWithRetry(() => import('@/features/products/ProductsPage'));
+const ProductDetailPage = lazyWithRetry(() => import('@/features/products/ProductDetailPage'));
+const ProductFormPage = lazyWithRetry(() => import('@/features/products/ProductFormPage'));
 const SettingsPage = lazyWithRetry(() => import('@/features/auth/SettingsPage'));
 // const OrdersPage = lazyWithRetry(() => import('@/features/orders/OrdersPage'));
 // const OrderDetailPage = lazyWithRetry(() => import('@/features/orders/OrderDetailPage'));
@@ -94,8 +97,12 @@ export default function App() {
                 <Route path="/bills/:id" element={<BillDetailPage />} />
                 <Route path="/payments" element={<PaymentsPage />} />
                 <Route path="/dashboard/payments" element={<PaymentsDashboardPage />} />
+                <Route path="/products" element={<ProductsPage />} />
+                <Route path="/products/:id" element={<ProductDetailPage />} />
 
                 <Route element={<AdminRoute />}>
+                  <Route path="/products/new" element={<ProductFormPage />} />
+                  <Route path="/products/:id/edit" element={<ProductFormPage />} />
                   <Route path="/users" element={<UsersPage />} />
                   <Route path="/users/new" element={<UserFormPage />} />
                   <Route path="/users/:id" element={<UserDetailPage />} />

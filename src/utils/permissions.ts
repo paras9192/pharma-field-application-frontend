@@ -31,6 +31,11 @@ export function canCreateChemist(role: Role): boolean {
   return role !== 'SALES_PERSON';
 }
 
+/** Product catalog writes (create / edit / inventory / delete / images) are admin-only. */
+export function canManageProducts(role: Role): boolean {
+  return role === 'SUPER_ADMIN' || role === 'ADMIN';
+}
+
 export function canUploadBillImage(_role: Role): boolean {
   return true;
 }

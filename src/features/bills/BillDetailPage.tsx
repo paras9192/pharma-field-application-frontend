@@ -1,10 +1,13 @@
 import { useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Receipt, IndianRupee, Package, Upload, RotateCcw, ImageIcon, FileText, Trash2 } from 'lucide-react';
+import { Receipt, IndianRupee, Package, Upload, RotateCcw, ImageIcon, FileText, Trash2, Camera, MapPin } from 'lucide-react';
 import { billsApi } from '@/api/bills';
 import { paymentsApi } from '@/api/payments';
+import { uploadFilesToS3 } from '@/api/uploads';
+import { compressImage } from '@/lib/compressImage';
 import { useAuthStore } from '@/store/authStore';
+import { useLocation } from '@/hooks/useLocation';
 import { canUploadBillImage, canDeleteBillImage } from '@/utils/permissions';
 import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
@@ -12,6 +15,7 @@ import { Badge } from '@/components/common/Badge';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { Modal } from '@/components/common/Modal';
+import { LocationBanner } from '@/components/common/LocationBanner';
 import { ListSkeleton } from '@/components/feedback/Skeleton';
 import { ErrorMessage } from '@/components/feedback/ErrorMessage';
 import type { BillStatus, PaymentMode, SettlementType } from '@/types/api';
@@ -54,6 +58,8 @@ export default function BillDetailPage() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fieldPhotoInputRef = useRef<HTMLInputElement>(null);
+  const payLocation = useLocation(false);
   const currentRole = useAuthStore(s => s.user?.role);
   const canUpload = currentRole ? canUploadBillImage(currentRole) : false;
   const canDelete = currentRole ? canDeleteBillImage(currentRole) : false;
@@ -64,6 +70,7 @@ export default function BillDetailPage() {
   const [payMode, setPayMode] = useState<PaymentMode>('CASH');
   const [payRef, setPayRef] = useState('');
   const [payNotes, setPayNotes] = useState('');
+  const [payPhoto, setPayPhoto] = useState<File | null>(null);
   const [payError, setPayError] = useState('');
 
   // Settlement modal state
@@ -118,13 +125,24 @@ export default function BillDetailPage() {
   });
 
   const payMutation = useMutation({
-    mutationFn: () => paymentsApi.collect({
-      billId: id!,
-      amount: Number(payAmount),
-      paymentMode: payMode,
-      referenceNumber: payRef || undefined,
-      notes: payNotes || undefined,
-    }),
+    mutationFn: async () => {
+      let fieldPhoto: string | undefined;
+      if (payPhoto) {
+        const [ref] = await uploadFilesToS3('payments', [await compressImage(payPhoto)]);
+        fieldPhoto = ref?.key;
+      }
+      return paymentsApi.collect({
+        billId: id!,
+        amount: Number(payAmount),
+        paymentMode: payMode,
+        referenceNumber: payRef || undefined,
+        notes: payNotes || undefined,
+        fieldPhoto,
+        lat: payLocation.lat ?? undefined,
+        lng: payLocation.lng ?? undefined,
+        locationCapturedAt: payLocation.capturedAt ?? undefined,
+      });
+    },
     onSuccess: () => {
       toast.success('Payment recorded');
       qc.invalidateQueries({ queryKey: ['bill', id] });
@@ -132,7 +150,7 @@ export default function BillDetailPage() {
       qc.invalidateQueries({ queryKey: ['bills'] });
       qc.invalidateQueries({ queryKey: ['payments'] });
       setShowPayModal(false);
-      setPayAmount(''); setPayRef(''); setPayNotes(''); setPayError('');
+      setPayAmount(''); setPayRef(''); setPayNotes(''); setPayPhoto(null); setPayError('');
     },
     onError: (err: AxiosError<{ error: { message: string } }>) => {
       setPayError(err.response?.data?.error?.message || 'Failed to record payment');
@@ -162,8 +180,9 @@ export default function BillDetailPage() {
   const handlePaySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const amt = Number(payAmount);
-    if (!amt || amt <= 0) { setPayError('Enter a valid amount'); return; }
+    if (payAmount === '' || Number.isNaN(amt) || amt < 0) { setPayError('Enter a valid amount'); return; }
     if (bill && amt > bill.dueAmount) { setPayError(`Cannot exceed due amount ₹${bill.dueAmount.toLocaleString('en-IN')}`); return; }
+    if (amt === 0 && !payPhoto) { setPayError('Upload a field photo to log this visit'); return; }
     setPayError('');
     payMutation.mutate();
   };
@@ -196,6 +215,7 @@ export default function BillDetailPage() {
   if (!bill) return null;
 
   const isOverdue = bill.status !== 'PAID' && bill.dueDate && dayjs(bill.dueDate).isBefore(dayjs(), 'day');
+  const isProofOfVisit = payAmount !== '' && Number(payAmount) === 0;
   const images = bill.images ?? [];
   if (import.meta.env.DEV && images.length) console.log('[BillImages] sample item:', images[0]);
 
@@ -226,7 +246,7 @@ export default function BillDetailPage() {
 
         {bill.status !== 'PAID' && (
           <div className="flex gap-2 mt-4">
-            <Button fullWidth onClick={() => { setPayAmount(String(bill.dueAmount)); setShowPayModal(true); }}>
+            <Button fullWidth onClick={() => { setPayAmount(String(bill.dueAmount)); setPayPhoto(null); setPayError(''); payLocation.retry(); setShowPayModal(true); }}>
               <IndianRupee size={14} /> Collect Payment
             </Button>
             {!settlementsQuery.isError && (
@@ -382,42 +402,114 @@ export default function BillDetailPage() {
         <Card>
           <h3 className="font-semibold text-slate-700 mb-3">Payment History ({paymentsQuery.data!.length})</h3>
           <div className="space-y-2">
-            {paymentsQuery.data!.map(p => (
-              <div key={p.id} className="bg-slate-50 rounded-xl px-3 py-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-slate-800">₹{p.amount.toLocaleString('en-IN')}</div>
-                  <div className="text-xs text-slate-400">
-                    {p.paymentMode.replace('_', ' ')}
-                    {p.referenceNumber && ` · ${p.referenceNumber}`}
+            {paymentsQuery.data!.map(p => {
+              const photoPath = p.fieldPhotoUrl ?? '';
+              const photoUrl = photoPath.startsWith('http') ? photoPath : `${BACKEND_URL}${photoPath}`;
+              return (
+                <div key={p.id} className="bg-slate-50 rounded-xl px-3 py-2.5">
+                  <div className="flex items-center justify-between">
+                    {p.amount === 0
+                      ? <Badge variant={'warning' as never}>Visit logged — no collection</Badge>
+                      : <div className="text-sm font-medium text-slate-800">₹{p.amount.toLocaleString('en-IN')}</div>
+                    }
+                    <div className="text-xs text-slate-400">
+                      {p.paymentMode.replace('_', ' ')}
+                      {p.referenceNumber && ` · ${p.referenceNumber}`}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between mt-0.5">
+                    {p.collectedBy
+                      ? <div className="text-xs text-slate-500">Collected by <span className="font-medium text-slate-700">{p.collectedBy.name}</span></div>
+                      : <div />
+                    }
+                    <div className="text-xs text-slate-400">{dayjs(p.createdAt).format('MMM D, YYYY')}</div>
+                  </div>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    {photoPath && (
+                      <a href={photoUrl} target="_blank" rel="noopener noreferrer">
+                        <img src={photoUrl} alt="Field photo" className="w-14 h-14 rounded-lg object-cover border border-slate-200" />
+                      </a>
+                    )}
+                    {p.lat != null && p.lng != null && (
+                      <a
+                        href={`https://www.google.com/maps?q=${p.lat},${p.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-blue-600"
+                      >
+                        <MapPin size={12} /> View location
+                      </a>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center justify-between mt-0.5">
-                  {p.collectedBy
-                    ? <div className="text-xs text-slate-500">Collected by <span className="font-medium text-slate-700">{p.collectedBy.name}</span></div>
-                    : <div />
-                  }
-                  <div className="text-xs text-slate-400">{dayjs(p.createdAt).format('MMM D, YYYY')}</div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
       )}
 
       {/* Collect Payment Modal */}
-      <Modal open={showPayModal} onClose={() => { setShowPayModal(false); setPayError(''); }} title="Collect Payment">
+      <Modal open={showPayModal} onClose={() => { setShowPayModal(false); setPayPhoto(null); setPayError(''); }} title="Collect Payment">
         <form onSubmit={handlePaySubmit} className="space-y-4">
           <Input
             label="Amount (₹)"
             type="number"
             step="0.01"
-            min={0.01}
+            min={0}
             required
             value={payAmount}
             onChange={e => setPayAmount(e.target.value)}
-            hint={`Due: ₹${bill.dueAmount.toLocaleString('en-IN')}`}
+            hint={`Due: ₹${bill.dueAmount.toLocaleString('en-IN')} · enter 0 to log a visit with no collection`}
             error={payError}
           />
+
+          {isProofOfVisit && (
+            <div className="space-y-2 rounded-xl bg-amber-50 border border-amber-200 p-3">
+              <p className="text-xs text-amber-700">
+                No amount collected — a field photo is required as proof that you visited this location.
+              </p>
+              <LocationBanner location={payLocation} />
+              <input
+                ref={fieldPhotoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                capture="environment"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0] ?? null;
+                  e.target.value = '';
+                  if (file && !file.type.startsWith('image/')) {
+                    toast.error('Only images can be uploaded');
+                    return;
+                  }
+                  setPayPhoto(file);
+                  setPayError('');
+                }}
+              />
+              {payPhoto ? (
+                <div className="flex items-center gap-2">
+                  <img
+                    src={URL.createObjectURL(payPhoto)}
+                    alt="Field photo"
+                    className="w-16 h-16 rounded-lg object-cover border border-amber-200"
+                  />
+                  <span className="text-xs text-slate-600 truncate flex-1">{payPhoto.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPayPhoto(null)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" size="sm" onClick={() => fieldPhotoInputRef.current?.click()}>
+                  <Camera size={13} /> Take field photo
+                </Button>
+              )}
+            </div>
+          )}
+
           <Select
             label="Payment Mode"
             required
@@ -441,7 +533,7 @@ export default function BillDetailPage() {
           />
           <div className="flex gap-3">
             <Button type="button" variant="outline" fullWidth onClick={() => setShowPayModal(false)}>Cancel</Button>
-            <Button type="submit" fullWidth loading={payMutation.isPending}>Record Payment</Button>
+            <Button type="submit" fullWidth loading={payMutation.isPending}>{isProofOfVisit ? 'Log Visit' : 'Record Payment'}</Button>
           </div>
         </form>
       </Modal>

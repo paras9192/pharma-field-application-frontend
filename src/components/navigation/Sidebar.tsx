@@ -3,7 +3,7 @@ import srlLogo from '@/assets/logo.png';
 import { Avatar } from '@/components/common/Avatar';
 import {
   LayoutDashboard, Users, Stethoscope, Pill, MapPin, CalendarCheck,
-  ClipboardList, FileText, LogOut, Settings, ShoppingCart, Receipt, IndianRupee, TrendingUp
+  ClipboardList, FileText, LogOut, Settings, ShoppingCart, Receipt, IndianRupee, TrendingUp, Package
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -29,6 +29,7 @@ export function Sidebar() {
     { to: '/visits', icon: ClipboardList, label: 'Visits' },
     { to: '/doctors', icon: Stethoscope, label: 'Doctors' },
     { to: '/chemists', icon: Pill, label: 'Chemists' },
+    { to: '/products', icon: Package, label: 'Products' },
     // { to: '/orders', icon: ShoppingCart, label: 'Orders' },
     { to: '/bills', icon: Receipt, label: 'Bills' },
     { to: '/payments', icon: IndianRupee, label: 'Payments' },
@@ -43,6 +44,7 @@ export function Sidebar() {
     { to: '/visits', icon: ClipboardList, label: 'Visits' },
     { to: '/doctors', icon: Stethoscope, label: 'Doctors' },
     { to: '/chemists', icon: Pill, label: 'Chemists' },
+    { to: '/products', icon: Package, label: 'Products' },
     // { to: '/orders', icon: ShoppingCart, label: 'Orders' },
     { to: '/bills', icon: Receipt, label: 'Bills' },
     { to: '/payments', icon: IndianRupee, label: 'Payments' },

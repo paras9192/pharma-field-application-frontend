@@ -3,7 +3,7 @@ import { api, UPLOAD_TIMEOUT } from './axios';
 import type { ApiResponse } from '@/types/api';
 
 export type UploadPurpose =
-  | 'visits' | 'bills' | 'doctors' | 'chemists'
+  | 'visits' | 'bills' | 'payments' | 'doctors' | 'chemists' | 'products'
   | 'profile-photos' | 'employee-documents';
 
 interface PresignResponse {

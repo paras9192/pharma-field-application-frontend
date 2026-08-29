@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Stethoscope, Pill, MapPin, CalendarCheck,
   ClipboardList, FileText, Receipt, IndianRupee, TrendingUp,
-  MoreHorizontal, X, Settings, LogOut, UserCheck,
+  MoreHorizontal, X, Settings, LogOut, UserCheck, Package,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -78,6 +78,7 @@ export function BottomNav() {
       case 'ADMIN':
         return [
           { to: '/users',             icon: Users,          label: 'Team'        },
+          { to: '/products',          icon: Package,        label: 'Products'    },
           { to: '/attendance',        icon: UserCheck,      label: 'Attendance'  },
           { to: '/bills',             icon: Receipt,        label: 'Bills'       },
           { to: '/payments',          icon: IndianRupee,    label: 'Payments'    },
@@ -91,6 +92,7 @@ export function BottomNav() {
       case 'ZSM':
         return [
           { to: '/daily-reports', icon: FileText,    label: 'Reports'    },
+          { to: '/products',      icon: Package,     label: 'Products'   },
           { to: '/attendance',    icon: UserCheck,   label: 'Attendance' },
           { to: '/bills',         icon: Receipt,     label: 'Bills'      },
           { to: '/payments',      icon: IndianRupee, label: 'Payments'   },
@@ -99,6 +101,7 @@ export function BottomNav() {
       case 'SALES_PERSON':
         return [
           { to: '/doctors',       icon: Stethoscope, label: 'Doctors'    },
+          { to: '/products',      icon: Package,     label: 'Products'   },
           { to: '/attendance',    icon: UserCheck,   label: 'Attendance' },
           { to: '/payments',      icon: IndianRupee, label: 'Payments'   },
           { to: '/daily-reports', icon: FileText,    label: 'Reports'    },
