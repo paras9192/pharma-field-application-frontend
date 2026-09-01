@@ -18,6 +18,7 @@ import { ErrorMessage } from '@/components/feedback/ErrorMessage';
 import toast from 'react-hot-toast';
 import { type AxiosError } from 'axios';
 import dayjs from 'dayjs';
+import { MARG_FIELD_LABELS, hasMargData } from './chemistMeta';
 
 const ALLOWED = /\.(jpg|jpeg|png|webp)$/i;
 
@@ -126,8 +127,15 @@ export default function ChemistDetailPage() {
               <h2 className="text-xl font-bold text-slate-800 leading-tight">{c.shopName}</h2>
               {!c.isActive && <Badge variant="danger">Inactive</Badge>}
             </div>
-            <div className="text-slate-500 mt-0.5">{c.ownerName}</div>
-            <div className="text-xs text-slate-400 mt-1">Added {dayjs(c.createdAt).format('MMM D, YYYY')}</div>
+            <div className="text-slate-500 mt-0.5">{c.ownerName || <span className="text-slate-400 italic">Owner not recorded</span>}</div>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              {c.margCode && (
+                <span className="text-[11px] font-mono text-slate-500 bg-slate-100 rounded px-1.5 py-0.5">
+                  {c.margCode}
+                </span>
+              )}
+              <span className="text-xs text-slate-400">Added {dayjs(c.createdAt).format('MMM D, YYYY')}</span>
+            </div>
           </div>
         </div>
 
@@ -168,12 +176,16 @@ export default function ChemistDetailPage() {
       <Card>
         <h3 className="font-semibold text-slate-700 mb-3">Contact & Details</h3>
         <div className="space-y-2.5">
-          <InfoRow icon={<Phone size={15} />} label="Phone" value={c.phone} />
-          {c.alternatePhone && <InfoRow icon={<Phone size={15} />} label="Alt Phone" value={c.alternatePhone} />}
-          {c.email && <InfoRow icon={<Mail size={15} />} label="Email" value={c.email} />}
-          {c.gstNumber && <InfoRow icon={<Hash size={15} />} label="GST" value={c.gstNumber} />}
-          {c.address && <InfoRow icon={<MapPin size={15} />} label="Address" value={c.address} />}
-          {c.territory && <InfoRow icon={<MapPin size={15} />} label="Territory" value={c.territory.name} />}
+          <InfoRow icon={<Phone size={15} />} label="Phone" value={c.phone
+            ? <a href={`tel:${c.phone}`} className="text-purple-600">{c.phone}</a>
+            : <Dash />} />
+          <InfoRow icon={<Phone size={15} />} label="Alt Phone" value={c.alternatePhone
+            ? <a href={`tel:${c.alternatePhone}`} className="text-purple-600">{c.alternatePhone}</a>
+            : <Dash />} />
+          <InfoRow icon={<Mail size={15} />} label="Email" value={c.email || <Dash />} />
+          <InfoRow icon={<Hash size={15} />} label="GST" value={c.gstNumber || <Dash />} />
+          <InfoRow icon={<MapPin size={15} />} label="Address" value={c.address || <Dash />} />
+          <InfoRow icon={<MapPin size={15} />} label="Territory" value={c.territory?.name || <Dash />} />
         </div>
         {isAdmin && totalDue > 0 && (
           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
@@ -182,6 +194,28 @@ export default function ChemistDetailPage() {
           </div>
         )}
       </Card>
+
+      {hasMargData(c) && (
+        <Card>
+          <h3 className="font-semibold text-slate-700 flex items-center gap-2 mb-1">
+            <Hash size={15} /> Marg (ERP) Record
+          </h3>
+          <p className="text-xs text-slate-400 mb-3">Imported from Marg — read-only, cannot be edited here.</p>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+            {MARG_FIELD_LABELS
+              .filter(({ key }) => {
+                const v = c[key] as string | null;
+                return v != null && v !== '';
+              })
+              .map(({ key, label }) => (
+                <div key={key} className="min-w-0">
+                  <dt className="text-xs text-slate-400">{label}</dt>
+                  <dd className="text-sm text-slate-700 break-words">{c[key] as string}</dd>
+                </div>
+              ))}
+          </dl>
+        </Card>
+      )}
 
       {/* Images */}
       <Card>
@@ -355,7 +389,11 @@ function AssignToRepModal({
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Dash() {
+  return <span className="text-slate-300">—</span>;
+}
+
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3">
       <div className="text-slate-400 mt-0.5 flex-shrink-0">{icon}</div>

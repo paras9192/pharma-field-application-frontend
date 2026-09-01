@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
 import { ordersApi } from '@/api/orders';
 import { chemistsApi } from '@/api/chemists';
+import { chemistOptionLabel } from '@/features/chemists/chemistMeta';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
 import { Button } from '@/components/common/Button';
@@ -83,7 +84,7 @@ export default function OrderFormPage() {
               label="Chemist"
               required
               placeholder="Select chemist"
-              options={(chemistsQuery.data ?? []).map(c => ({ value: c.id, label: `${c.shopName} — ${c.ownerName}` }))}
+              options={(chemistsQuery.data ?? []).map(c => ({ value: c.id, label: chemistOptionLabel(c) }))}
               error={errors.chemistId?.message}
               {...register('chemistId')}
             />

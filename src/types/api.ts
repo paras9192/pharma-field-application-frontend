@@ -283,8 +283,8 @@ export interface CreateDoctorPayload {
 export interface Chemist {
   id: string;
   shopName: string;
-  ownerName: string;
-  phone: string;
+  ownerName: string | null;
+  phone: string | null;
   alternatePhone: string | null;
   email: string | null;
   gstNumber: string | null;
@@ -300,6 +300,39 @@ export interface Chemist {
   images: EntityImage[];
   createdAt: string;
   updatedAt: string;
+
+  /**
+   * Raw values from the Marg (ERP) import — verbatim, no cleaning. Import-only:
+   * they cannot be written back through POST / PATCH /chemists. `margCode` is
+   * the ERP's stable identifier and is often the only reliable label for
+   * imported rows, where `ownerName` / `phone` are frequently null.
+   */
+  margCode: string | null;
+  margType: string | null;
+  margLedger: string | null;
+  margCity: string | null;
+  margGroup: string | null;
+  margAddress1: string | null;
+  margAddress2: string | null;
+  margAddress3: string | null;
+  margPin: string | null;
+  margContact: string | null;
+  margPhone1: string | null;
+  margMobile: string | null;
+  margResi: string | null;
+  margLicence: string | null;
+  margTin: string | null;
+  margStno: string | null;
+  margPanno: string | null;
+  margMr: string | null;
+  margArea: string | null;
+  margRout: string | null;
+  margCrdays: string | null;
+  margCramount: string | null;
+  margLimitbill: string | null;
+  margLimitday: string | null;
+  margLimittype: string | null;
+  margFreez: string | null;
 }
 
 export interface SalesPersonChemist {

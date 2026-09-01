@@ -8,6 +8,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { visitsApi } from '@/api/visits';
 import { doctorsApi } from '@/api/doctors';
 import { chemistsApi } from '@/api/chemists';
+import { chemistOptionLabel } from '@/features/chemists/chemistMeta';
 import { territoriesApi } from '@/api/territories';
 import { useLocation } from '@/hooks/useLocation';
 import { LocationBanner } from '@/components/common/LocationBanner';
@@ -165,7 +166,7 @@ export default function VisitFormPage() {
   const isSaving = isSubmitting || createMutation.isPending || updateMutation.isPending;
 
   const doctorOptions = doctors?.map(d => ({ value: d.id, label: d.name })) ?? [];
-  const chemistOptions = chemists?.map(c => ({ value: c.id, label: c.shopName })) ?? [];
+  const chemistOptions = chemists?.map(c => ({ value: c.id, label: chemistOptionLabel(c) })) ?? [];
   const territoryOptions = territories?.map(t => ({ value: t.id, label: t.name })) ?? [];
 
   return (

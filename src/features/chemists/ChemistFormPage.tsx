@@ -14,6 +14,7 @@ import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import toast from 'react-hot-toast';
 import { type AxiosError } from 'axios';
+import { hasMargData, MARG_FIELD_LABELS } from './chemistMeta';
 
 const schema = z.object({
   shopName: z.string().min(1, 'Shop name required'),
@@ -56,8 +57,8 @@ export default function ChemistFormPage() {
     if (chemist) {
       reset({
         shopName: chemist.shopName,
-        ownerName: chemist.ownerName,
-        phone: chemist.phone,
+        ownerName: chemist.ownerName ?? '',
+        phone: chemist.phone ?? '',
         alternatePhone: chemist.alternatePhone ?? '',
         email: chemist.email ?? '',
         gstNumber: chemist.gstNumber ?? '',
@@ -140,6 +141,26 @@ export default function ChemistFormPage() {
           </div>
         </form>
       </Card>
+
+      {isEdit && chemist && hasMargData(chemist) && (
+        <Card className="mt-4">
+          <h3 className="font-semibold text-slate-700 text-sm mb-1">Marg (ERP) import</h3>
+          <p className="text-xs text-slate-400 mb-3">Read-only — imported data, cannot be edited here.</p>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+            {MARG_FIELD_LABELS
+              .filter(({ key }) => {
+                const v = chemist[key] as string | null;
+                return v != null && v !== '';
+              })
+              .map(({ key, label }) => (
+                <div key={key} className="min-w-0">
+                  <dt className="text-xs text-slate-400">{label}</dt>
+                  <dd className="text-sm text-slate-700 break-words">{chemist[key] as string}</dd>
+                </div>
+              ))}
+          </dl>
+        </Card>
+      )}
     </div>
   );
 }
