@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send, User as UserIcon, FileText, ExternalLink, Droplet, Heart } from 'lucide-react';
+import { Edit2, Mail, Phone, Calendar, MapPin, KeyRound, ShoppingBag, Plus, X, Search, Send, User as UserIcon, FileText, ExternalLink, Droplet, Heart, Wallet } from 'lucide-react';
 import { usersApi } from '@/api/users';
 import { chemistsApi } from '@/api/chemists';
 import { useAuthStore } from '@/store/authStore';
@@ -101,6 +101,9 @@ export default function UserDetailPage() {
         <div className="flex gap-2 mt-4">
           <Link to={`/users/${id}/edit`} className="flex-1">
             <Button variant="outline" size="sm" fullWidth><Edit2 size={14} /> Edit Profile</Button>
+          </Link>
+          <Link to={`/wallet/${id}`} className="flex-1">
+            <Button variant="outline" size="sm" fullWidth><Wallet size={14} /> Wallet</Button>
           </Link>
           {(currentUserRole === 'SUPER_ADMIN' || (currentUserRole === 'ADMIN' && user.role.name !== 'SUPER_ADMIN')) && (
             <>

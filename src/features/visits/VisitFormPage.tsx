@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,10 +10,13 @@ import { doctorsApi } from '@/api/doctors';
 import { chemistsApi } from '@/api/chemists';
 import { chemistOptionLabel } from '@/features/chemists/chemistMeta';
 import { territoriesApi } from '@/api/territories';
+import { productsApi } from '@/api/products';
 import { useLocation } from '@/hooks/useLocation';
 import { LocationBanner } from '@/components/common/LocationBanner';
 import { Input } from '@/components/common/Input';
 import { Select } from '@/components/common/Select';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
+import { AsyncSearchSelect } from '@/components/common/AsyncSearchSelect';
 import { Textarea } from '@/components/common/Textarea';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
@@ -37,6 +40,17 @@ const schema = z.object({
     details: z.string().optional(),
     quantity: z.string().optional(),
   })).optional(),
+  gifts: z.array(z.object({
+    amount: z.string().min(1, 'Amount required'),
+    productName: z.string().min(1, 'Product name required'),
+    description: z.string().optional(),
+  })).optional(),
+  bookings: z.array(z.object({
+    productId: z.string().min(1, 'Select a product'),
+    productLabel: z.string().optional(),
+    quantity: z.string().min(1, 'Quantity required'),
+    expectedAmount: z.string().min(1, 'Amount required'),
+  })).optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -52,7 +66,7 @@ export default function VisitFormPage() {
   const prefillDoctorId = searchParams.get('doctorId');
   const prefillChemistId = searchParams.get('chemistId');
 
-  const { register, handleSubmit, watch, control, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, watch, control, reset, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       visitType: prefillDoctorId ? 'DOCTOR' : prefillChemistId ? 'CHEMIST' : 'DOCTOR',
@@ -61,10 +75,14 @@ export default function VisitFormPage() {
       doctorId: prefillDoctorId ?? '',
       chemistId: prefillChemistId ?? '',
       products: [],
+      gifts: [],
+      bookings: [],
     },
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'products' });
+  const { fields: giftFields, append: appendGift, remove: removeGift } = useFieldArray({ control, name: 'gifts' });
+  const { fields: bookingFields, append: appendBooking, remove: removeBooking } = useFieldArray({ control, name: 'bookings' });
   const visitType = watch('visitType');
 
   const { data: visit } = useQuery({
@@ -110,6 +128,17 @@ export default function VisitFormPage() {
           details: p.details ?? '',
           quantity: p.quantity ?? '',
         })) ?? [],
+        gifts: visit.gifts?.map(g => ({
+          amount: g.amount,
+          productName: g.productName,
+          description: g.description ?? '',
+        })) ?? [],
+        bookings: visit.bookings?.map(b => ({
+          productId: b.productId,
+          productLabel: b.product.name,
+          quantity: String(b.quantity),
+          expectedAmount: b.expectedAmount,
+        })) ?? [],
       });
     }
   }, [visit, reset]);
@@ -130,6 +159,12 @@ export default function VisitFormPage() {
       followUpNotes: data.followUpNotes || undefined,
       status: data.status,
       products: data.products?.filter(p => p.productName),
+      gifts: data.gifts
+        ?.filter(g => g.productName && g.amount)
+        .map(g => ({ amount: Number(g.amount), productName: g.productName, description: g.description || undefined })),
+      bookings: data.bookings
+        ?.filter(b => b.productId && b.quantity && b.expectedAmount)
+        .map(b => ({ productId: b.productId, quantity: Number(b.quantity), expectedAmount: Number(b.expectedAmount) })),
     }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['visits'] });
@@ -150,6 +185,12 @@ export default function VisitFormPage() {
       followUpNotes: data.followUpNotes || undefined,
       status: data.status,
       products: data.products?.filter(p => p.productName),
+      gifts: data.gifts
+        ?.filter(g => g.productName && g.amount)
+        .map(g => ({ amount: Number(g.amount), productName: g.productName, description: g.description || undefined })),
+      bookings: data.bookings
+        ?.filter(b => b.productId && b.quantity && b.expectedAmount)
+        .map(b => ({ productId: b.productId, quantity: Number(b.quantity), expectedAmount: Number(b.expectedAmount) })),
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['visit', id] });
@@ -199,13 +240,22 @@ export default function VisitFormPage() {
               />
             )}
             {!isEdit && visitType === 'CHEMIST' && (
-              <Select
-                label="Chemist"
-                required
-                options={chemistOptions}
-                placeholder="Select chemist"
-                error={errors.chemistId?.message}
-                {...register('chemistId')}
+              <Controller
+                name="chemistId"
+                control={control}
+                render={({ field }) => (
+                  <SearchableSelect
+                    label="Chemist"
+                    required
+                    options={chemistOptions}
+                    placeholder="Select chemist"
+                    searchPlaceholder="Search by shop or owner name..."
+                    error={errors.chemistId?.message}
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
             )}
             {!isEdit && (
@@ -263,6 +313,91 @@ export default function VisitFormPage() {
                 <Input placeholder="Product name *" error={errors.products?.[i]?.productName?.message} {...register(`products.${i}.productName`)} />
                 <Input placeholder="Details" {...register(`products.${i}.details`)} />
                 <Input placeholder="Quantity" {...register(`products.${i}.quantity`)} />
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Gifts */}
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-slate-700">Gifts Given</h3>
+            <Button type="button" variant="ghost" size="sm" onClick={() => appendGift({ amount: '', productName: '', description: '' })}>
+              <Plus size={14} /> Add
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {giftFields.map((field, i) => (
+              <div key={field.id} className="bg-slate-50 rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-slate-500">Gift {i + 1}</span>
+                  <button type="button" onClick={() => removeGift(i)} className="p-1 text-red-400 hover:text-red-600">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <Input placeholder="Item name *" error={errors.gifts?.[i]?.productName?.message} {...register(`gifts.${i}.productName`)} />
+                <Input
+                  placeholder="Amount (₹) *"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  error={errors.gifts?.[i]?.amount?.message}
+                  {...register(`gifts.${i}.amount`)}
+                />
+                <Input placeholder="Description" {...register(`gifts.${i}.description`)} />
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Bookings */}
+        <Card>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-slate-700">Bookings</h3>
+            <Button type="button" variant="ghost" size="sm" onClick={() => appendBooking({ productId: '', productLabel: '', quantity: '', expectedAmount: '' })}>
+              <Plus size={14} /> Add
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {bookingFields.map((field, i) => (
+              <div key={field.id} className="bg-slate-50 rounded-xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-slate-500">Booking {i + 1}</span>
+                  <button type="button" onClick={() => removeBooking(i)} className="p-1 text-red-400 hover:text-red-600">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <Controller
+                  name={`bookings.${i}.productId`}
+                  control={control}
+                  render={({ field: productField }) => (
+                    <AsyncSearchSelect
+                      placeholder="Select product *"
+                      searchPlaceholder="Search products..."
+                      error={errors.bookings?.[i]?.productId?.message}
+                      value={productField.value ?? ''}
+                      displayLabel={watch(`bookings.${i}.productLabel`)}
+                      onChange={(id, name) => {
+                        productField.onChange(id);
+                        setValue(`bookings.${i}.productLabel`, name);
+                      }}
+                      onBlur={productField.onBlur}
+                      fetchOptions={async q => {
+                        const res = await productsApi.list({ search: q, limit: 20, page: 1 });
+                        return res.data.data.map(p => ({ value: p.id, label: `${p.name} (${p.productCode})` }));
+                      }}
+                    />
+                  )}
+                />
+                <Input placeholder="Quantity *" type="number" min={1} error={errors.bookings?.[i]?.quantity?.message} {...register(`bookings.${i}.quantity`)} />
+                <Input
+                  placeholder="Expected Amount (₹) *"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  error={errors.bookings?.[i]?.expectedAmount?.message}
+                  {...register(`bookings.${i}.expectedAmount`)}
+                />
               </div>
             ))}
           </div>

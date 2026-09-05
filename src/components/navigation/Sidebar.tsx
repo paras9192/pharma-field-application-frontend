@@ -3,7 +3,7 @@ import srlLogo from '@/assets/logo.png';
 import { Avatar } from '@/components/common/Avatar';
 import {
   LayoutDashboard, Users, Stethoscope, Pill, MapPin, CalendarCheck,
-  ClipboardList, FileText, LogOut, Settings, ShoppingCart, Receipt, IndianRupee, TrendingUp, Package
+  ClipboardList, FileText, LogOut, Settings, ShoppingCart, Receipt, IndianRupee, TrendingUp, Package, Wallet
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -16,6 +16,7 @@ export function Sidebar() {
     logout: s.logout,
     refreshToken: s.refreshToken,
   })));
+  const role = user?.role;
 
   const handleLogout = async () => {
     try { await authApi.logout(refreshToken ?? undefined); } catch { /* ignore */ }
@@ -33,6 +34,7 @@ export function Sidebar() {
     // { to: '/orders', icon: ShoppingCart, label: 'Orders' },
     { to: '/bills', icon: Receipt, label: 'Bills' },
     { to: '/payments', icon: IndianRupee, label: 'Payments' },
+    { to: '/wallets', icon: Wallet, label: 'Wallets' },
     { to: '/dashboard/payments', icon: TrendingUp, label: 'Analytics' },
     { to: '/daily-reports', icon: FileText, label: 'Reports' },
     { to: '/territories', icon: MapPin, label: 'Territories' },
@@ -46,8 +48,10 @@ export function Sidebar() {
     { to: '/chemists', icon: Pill, label: 'Chemists' },
     { to: '/products', icon: Package, label: 'Products' },
     // { to: '/orders', icon: ShoppingCart, label: 'Orders' },
-    { to: '/bills', icon: Receipt, label: 'Bills' },
+    // Only Sales Person (of the field roles) can see Bills — MR/ASM/ZSM are blocked by NoBillsRoute.
+    ...(role === 'SALES_PERSON' ? [{ to: '/bills', icon: Receipt, label: 'Bills' }] : []),
     { to: '/payments', icon: IndianRupee, label: 'Payments' },
+    { to: '/wallet', icon: Wallet, label: 'My Wallet' },
     { to: '/daily-reports', icon: FileText, label: 'Daily Reports' },
   ];
 

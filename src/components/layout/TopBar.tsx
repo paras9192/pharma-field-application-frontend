@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import srlLogo from '@/assets/logo.png';
 import { Avatar } from '@/components/common/Avatar';
 import { ArrowLeft, LogOut } from 'lucide-react';
+import { WalletBadge } from '@/features/incentives/WalletBadge';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
 import { authApi } from '@/api/auth';
@@ -26,6 +27,7 @@ const routeTitles: Record<string, string> = {
   '/users': 'Team',
   '/users/new': 'Add User',
   '/territories': 'Territories',
+  '/wallets': 'Incentive Wallets',
   '/settings': 'Settings',
 };
 
@@ -63,6 +65,7 @@ export function TopBar() {
         )}
 
         <div className={`flex items-center gap-1 ${isRoot ? 'ml-auto' : ''}`}>
+          <WalletBadge />
           <NotificationBell />
           <button onClick={() => navigate('/settings')} className="rounded-full">
             <Avatar

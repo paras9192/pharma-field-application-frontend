@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -8,7 +8,7 @@ import { ordersApi } from '@/api/orders';
 import { chemistsApi } from '@/api/chemists';
 import { chemistOptionLabel } from '@/features/chemists/chemistMeta';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import toast from 'react-hot-toast';
@@ -80,13 +80,22 @@ export default function OrderFormPage() {
         <Card>
           <h3 className="font-semibold text-slate-700 mb-3">Order Info</h3>
           <div className="space-y-3">
-            <Select
-              label="Chemist"
-              required
-              placeholder="Select chemist"
-              options={(chemistsQuery.data ?? []).map(c => ({ value: c.id, label: chemistOptionLabel(c) }))}
-              error={errors.chemistId?.message}
-              {...register('chemistId')}
+            <Controller
+              name="chemistId"
+              control={control}
+              render={({ field }) => (
+                <SearchableSelect
+                  label="Chemist"
+                  required
+                  placeholder="Select chemist"
+                  searchPlaceholder="Search by shop or owner name..."
+                  options={(chemistsQuery.data ?? []).map(c => ({ value: c.id, label: chemistOptionLabel(c) }))}
+                  error={errors.chemistId?.message}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
             />
             <Input label="Expected Delivery" type="date" {...register('expectedDelivery')} />
             <Input label="Notes" placeholder="Urgent delivery, special instructions..." {...register('notes')} />

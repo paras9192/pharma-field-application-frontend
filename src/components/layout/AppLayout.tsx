@@ -5,6 +5,7 @@ import { TopBar } from './TopBar';
 import { ProfileCompletionBanner } from '@/components/common/ProfileCompletionBanner';
 import { NotificationPermissionBanner } from '@/components/common/NotificationPermissionBanner';
 import { NotificationBell } from '@/features/notifications/NotificationPanel';
+import { WalletBadge } from '@/features/incentives/WalletBadge';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export function AppLayout() {
@@ -18,7 +19,8 @@ export function AppLayout() {
         <TopBar />
         {/* TopBar (with its own bell) is mobile-only — Sidebar has no header
             row of its own, so desktop needs this to see notifications at all. */}
-        <div className="hidden lg:flex justify-end items-center px-6 py-3 border-b border-slate-100 bg-white">
+        <div className="hidden lg:flex justify-end items-center gap-1 px-6 py-3 border-b border-slate-100 bg-white">
+          <WalletBadge />
           <NotificationBell />
         </div>
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-6">

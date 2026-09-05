@@ -32,6 +32,14 @@ export function AdminRoute() {
   return <Outlet />;
 }
 
+export function NoBillsRoute() {
+  const loggedIn = useActiveSession();
+  const role = useAuthStore(s => s.user?.role);
+  if (!loggedIn) return <Navigate to="/login" replace />;
+  if (role === 'MR' || role === 'ASM' || role === 'ZSM') return <Navigate to="/" replace />;
+  return <Outlet />;
+}
+
 export function GuestRoute() {
   const loggedIn = useActiveSession();
   if (loggedIn) return <Navigate to="/" replace />;

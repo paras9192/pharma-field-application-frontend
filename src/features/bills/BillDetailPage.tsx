@@ -149,6 +149,10 @@ export default function BillDetailPage() {
       qc.invalidateQueries({ queryKey: ['bill-payments', id] });
       qc.invalidateQueries({ queryKey: ['bills'] });
       qc.invalidateQueries({ queryKey: ['payments'] });
+      // A collected payment credits the collector's incentive wallet server-side —
+      // refresh it so the balance doesn't sit stale until the cache expires.
+      qc.invalidateQueries({ queryKey: ['incentive-wallet'] });
+      qc.invalidateQueries({ queryKey: ['incentive-transactions'] });
       setShowPayModal(false);
       setPayAmount(''); setPayRef(''); setPayNotes(''); setPayPhoto(null); setPayError('');
     },

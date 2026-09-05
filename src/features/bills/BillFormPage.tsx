@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import { billsApi } from '@/api/bills';
 import { chemistsApi } from '@/api/chemists';
 import { chemistOptionLabel } from '@/features/chemists/chemistMeta';
 import { Input } from '@/components/common/Input';
-import { Select } from '@/components/common/Select';
+import { SearchableSelect } from '@/components/common/SearchableSelect';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import toast from 'react-hot-toast';
@@ -32,7 +32,7 @@ export default function BillFormPage() {
   const prefillChemistId = searchParams.get('chemistId') ?? undefined;
   const prefillAmount = searchParams.get('amount') ?? undefined;
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, control, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as never,
     defaultValues: {
       chemistId: prefillChemistId ?? '',
@@ -77,13 +77,22 @@ export default function BillFormPage() {
 
       <Card>
         <form onSubmit={handleSubmit(data => mutation.mutate(data))} className="space-y-4">
-          <Select
-            label="Chemist"
-            required
-            placeholder="Select chemist"
-            options={(chemistsQuery.data ?? []).map(c => ({ value: c.id, label: chemistOptionLabel(c) }))}
-            error={errors.chemistId?.message}
-            {...register('chemistId')}
+          <Controller
+            name="chemistId"
+            control={control}
+            render={({ field }) => (
+              <SearchableSelect
+                label="Chemist"
+                required
+                placeholder="Select chemist"
+                searchPlaceholder="Search by shop or owner name..."
+                options={(chemistsQuery.data ?? []).map(c => ({ value: c.id, label: chemistOptionLabel(c) }))}
+                error={errors.chemistId?.message}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
           <Input
             label="Bill Number"

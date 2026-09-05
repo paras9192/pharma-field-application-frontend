@@ -406,6 +406,23 @@ export interface VisitProduct {
   quantity: string | null;
 }
 
+export interface VisitGift {
+  id: number;
+  amount: string;
+  productName: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface VisitBooking {
+  id: number;
+  productId: string;
+  product: { id: string; name: string; productCode: string };
+  quantity: number;
+  expectedAmount: string;
+  createdAt: string;
+}
+
 export interface Visit {
   id: string;
   userId: string;
@@ -426,6 +443,8 @@ export interface Visit {
   followUpDone: boolean;
   status: VisitStatus;
   products: VisitProduct[];
+  gifts: VisitGift[];
+  bookings: VisitBooking[];
   images: EntityImage[];
   user: { id: string; name: string; employeeCode: string | null };
   doctor: { id: string; name: string; specialization: string | null } | null;
@@ -451,6 +470,8 @@ export interface CreateVisitPayload {
   followUpNotes?: string;
   status?: VisitStatus;
   products?: { productName: string; details?: string; quantity?: string }[];
+  gifts?: { amount: number; productName: string; description?: string }[];
+  bookings?: { productId: string; quantity: number; expectedAmount: number }[];
 }
 
 // ─── Daily Reports ────────────────────────────────────────────────────────────
@@ -640,6 +661,78 @@ export interface PaymentSummary {
   totalCollected: number;
   totalTransactions: number;
   byMode: Array<{ mode: PaymentMode; amount: number; count: number }>;
+}
+
+// ─── Incentive Wallet ─────────────────────────────────────────────────────────
+
+export interface MonthlyIncentive {
+  year: number;
+  month: number;
+  earned: number;
+  baseCollected: number;
+  transactions: number;
+}
+
+export interface IncentiveWallet {
+  rate: number;
+  totalEarned: number;
+  totalPaidOut: number;
+  availableBalance: number;
+  totalTransactions: number;
+  currentMonthEarned: number;
+  monthly: MonthlyIncentive[];
+}
+
+export interface IncentiveTransaction {
+  id: string;
+  userId: string;
+  sourceType: 'PAYMENT_COLLECTED';
+  paymentId: string;
+  baseAmount: number;
+  rate: number;
+  amount: number;
+  month: number;
+  year: number;
+  createdAt: string;
+  payment: {
+    id: string;
+    paymentMode: PaymentMode;
+    bill: { id: string; billNumber: string; chemist: { shopName: string } };
+  };
+}
+
+export interface IncentivePayout {
+  id: string;
+  userId: string;
+  amount: number;
+  paymentMode: PaymentMode;
+  referenceNumber: string | null;
+  notes: string | null;
+  paidById: string;
+  paidBy?: { id: string; name: string };
+  createdAt: string;
+}
+
+export interface CreatePayoutPayload {
+  amount: number;
+  paymentMode: PaymentMode;
+  referenceNumber?: string;
+  notes?: string;
+}
+
+export interface WalletSummary {
+  // Backend field name for the user id is unconfirmed — accept either shape
+  // rather than guess wrong again; WalletsAdminPage resolves whichever is present.
+  id?: string;
+  userId?: string;
+  name: string;
+  role: Role;
+  employeeCode: string | null;
+  email?: string;
+  totalEarned: number;
+  totalPaidOut: number;
+  availableBalance: number;
+  totalTransactions: number;
 }
 
 // ─── Dashboard Types ────────────────────────────────────────────────────────
@@ -899,6 +992,8 @@ export type NotificationType =
   | 'ORDER_CREATED'
   | 'ORDER_STATUS_CHANGED'
   | 'VISIT_LOGGED'
+  | 'GIFT_GIVEN'
+  | 'BOOKING_CREATED'
   | 'GENERAL';
 
 export interface AppNotification {

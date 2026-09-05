@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ProtectedRoute, AdminRoute, GuestRoute } from '@/routes/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, NoBillsRoute, GuestRoute } from '@/routes/ProtectedRoute';
 import { Skeleton } from '@/components/feedback/Skeleton';
 import { InstallPrompt } from '@/components/common/InstallPrompt';
 
@@ -56,6 +56,8 @@ const BillDetailPage = lazyWithRetry(() => import('@/features/bills/BillDetailPa
 const BillFormPage = lazyWithRetry(() => import('@/features/bills/BillFormPage'));
 const PaymentsPage = lazyWithRetry(() => import('@/features/payments/PaymentsPage'));
 const PaymentsDashboardPage = lazyWithRetry(() => import('@/features/dashboard/PaymentsDashboardPage'));
+const WalletPage = lazyWithRetry(() => import('@/features/incentives/WalletPage'));
+const WalletsAdminPage = lazyWithRetry(() => import('@/features/incentives/WalletsAdminPage'));
 
 export default function App() {
   return (
@@ -92,11 +94,14 @@ export default function App() {
                 {/* <Route path="/orders" element={<OrdersPage />} /> */}
                 {/* <Route path="/orders/new" element={<OrderFormPage />} /> */}
                 {/* <Route path="/orders/:id" element={<OrderDetailPage />} /> */}
-                <Route path="/bills" element={<BillsPage />} />
-                <Route path="/bills/new" element={<BillFormPage />} />
-                <Route path="/bills/:id" element={<BillDetailPage />} />
+                <Route element={<NoBillsRoute />}>
+                  <Route path="/bills" element={<BillsPage />} />
+                  <Route path="/bills/new" element={<BillFormPage />} />
+                  <Route path="/bills/:id" element={<BillDetailPage />} />
+                </Route>
                 <Route path="/payments" element={<PaymentsPage />} />
                 <Route path="/dashboard/payments" element={<PaymentsDashboardPage />} />
+                <Route path="/wallet" element={<WalletPage />} />
                 <Route path="/products" element={<ProductsPage />} />
                 <Route path="/products/:id" element={<ProductDetailPage />} />
 
@@ -108,6 +113,8 @@ export default function App() {
                   <Route path="/users/:id" element={<UserDetailPage />} />
                   <Route path="/users/:id/edit" element={<UserFormPage />} />
                   <Route path="/territories" element={<TerritoriesPage />} />
+                  <Route path="/wallets" element={<WalletsAdminPage />} />
+                  <Route path="/wallet/:userId" element={<WalletPage />} />
                 </Route>
               </Route>
             </Route>

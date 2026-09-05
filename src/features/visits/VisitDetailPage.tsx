@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Edit2, MapPin, Clock, Package, CheckCircle, Stethoscope, ShoppingBag, ImageIcon } from 'lucide-react';
+import { Edit2, MapPin, Clock, Package, CheckCircle, Stethoscope, ShoppingBag, ImageIcon, Gift, CalendarCheck } from 'lucide-react';
 import { visitsApi } from '@/api/visits';
 import { useAuthStore } from '@/store/authStore';
 import { canEditVisit } from '@/utils/permissions';
@@ -180,6 +180,46 @@ export default function VisitDetailPage() {
                 <div className="font-medium text-slate-800">{p.productName}</div>
                 {p.details && <div className="text-xs text-slate-500 mt-0.5">{p.details}</div>}
                 {p.quantity && <div className="text-xs text-blue-600">Qty: {p.quantity}</div>}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Gifts */}
+      {v.gifts?.length > 0 && (
+        <Card>
+          <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <Gift size={15} /> Gifts Given
+          </h3>
+          <div className="space-y-2">
+            {v.gifts.map(g => (
+              <div key={g.id} className="bg-slate-50 rounded-xl p-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium text-slate-800">{g.productName}</div>
+                  <div className="text-sm font-semibold text-pink-600">₹{Number(g.amount).toLocaleString('en-IN')}</div>
+                </div>
+                {g.description && <div className="text-xs text-slate-500 mt-0.5">{g.description}</div>}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Bookings */}
+      {v.bookings?.length > 0 && (
+        <Card>
+          <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
+            <CalendarCheck size={15} /> Bookings
+          </h3>
+          <div className="space-y-2">
+            {v.bookings.map(b => (
+              <div key={b.id} className="bg-slate-50 rounded-xl p-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium text-slate-800">{b.product.name}</div>
+                  <div className="text-sm font-semibold text-indigo-600">₹{Number(b.expectedAmount).toLocaleString('en-IN')}</div>
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">Qty: {b.quantity} · {b.product.productCode}</div>
               </div>
             ))}
           </div>

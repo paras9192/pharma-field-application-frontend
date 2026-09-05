@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Stethoscope, Pill, MapPin, CalendarCheck,
   ClipboardList, FileText, Receipt, IndianRupee, TrendingUp,
-  MoreHorizontal, X, Settings, LogOut, UserCheck, Package,
+  MoreHorizontal, X, Settings, LogOut, UserCheck, Package, Wallet,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -82,11 +82,14 @@ export function BottomNav() {
           { to: '/attendance',        icon: UserCheck,      label: 'Attendance'  },
           { to: '/bills',             icon: Receipt,        label: 'Bills'       },
           { to: '/payments',          icon: IndianRupee,    label: 'Payments'    },
+          { to: '/wallets',           icon: Wallet,         label: 'Wallets'     },
           { to: '/dashboard/payments',icon: TrendingUp,     label: 'Analytics'   },
           { to: '/daily-reports',     icon: FileText,       label: 'Reports'     },
           { to: '/territories',       icon: MapPin,         label: 'Territories' },
           { to: '/settings',          icon: Settings,       label: 'Settings'    },
         ];
+      // ASM/ZSM get exactly the MR screens — rank carries no extra access. None of the
+      // three can see Bills, which is a Sales Person (and admin) concern — see NoBillsRoute.
       case 'MR':
       case 'ASM':
       case 'ZSM':
@@ -94,8 +97,8 @@ export function BottomNav() {
           { to: '/daily-reports', icon: FileText,    label: 'Reports'    },
           { to: '/products',      icon: Package,     label: 'Products'   },
           { to: '/attendance',    icon: UserCheck,   label: 'Attendance' },
-          { to: '/bills',         icon: Receipt,     label: 'Bills'      },
           { to: '/payments',      icon: IndianRupee, label: 'Payments'   },
+          { to: '/wallet',        icon: Wallet,      label: 'My Wallet'  },
           { to: '/settings',      icon: Settings,    label: 'Settings'   },
         ];
       case 'SALES_PERSON':
@@ -104,6 +107,7 @@ export function BottomNav() {
           { to: '/products',      icon: Package,     label: 'Products'   },
           { to: '/attendance',    icon: UserCheck,   label: 'Attendance' },
           { to: '/payments',      icon: IndianRupee, label: 'Payments'   },
+          { to: '/wallet',        icon: Wallet,      label: 'My Wallet'  },
           { to: '/daily-reports', icon: FileText,    label: 'Reports'    },
           { to: '/settings',      icon: Settings,    label: 'Settings'   },
         ];
